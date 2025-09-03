@@ -70,8 +70,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Update nav button states
-        if (!isExiting) {
+        // Update nav button states only if they exist (not on mobile)
+        if (!isExiting && navButtons.length > 0) {
             navButtons.forEach((btn, i) => {
                 btn.classList.toggle('active', i === index);
             });
@@ -99,10 +99,12 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Let nav buttons fade out naturally through the overlap function
-        navButtons.forEach(btn => {
-            btn.classList.remove('active');
-        });
+        // Let nav buttons fade out naturally through the overlap function (if they exist)
+        if (navButtons.length > 0) {
+            navButtons.forEach(btn => {
+                btn.classList.remove('active');
+            });
+        }
 
         // Hide background overlays with transition
         setTimeout(() => {
@@ -177,13 +179,15 @@ document.addEventListener('DOMContentLoaded', function () {
             section.classList.remove('active', 'above', 'below', 'entering', 'exiting');
         });
         
-        // Reset navigation buttons
-        navButtons.forEach(btn => {
-            btn.style.transform = '';
-            btn.style.opacity = '';
-            btn.style.pointerEvents = '';
-            btn.classList.remove('active');
-        });
+        // Reset navigation buttons (if they exist)
+        if (navButtons.length > 0) {
+            navButtons.forEach(btn => {
+                btn.style.transform = '';
+                btn.style.opacity = '';
+                btn.style.pointerEvents = '';
+                btn.classList.remove('active');
+            });
+        }
         
         // Force reflow
         void timelineContainer.offsetHeight;
@@ -316,6 +320,11 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateNavigationOverlap(scrollY, timelineStart, timelineEnd) {
         const timelineNav = document.querySelector('.timeline-nav');
         
+        // Skip if navigation doesn't exist (mobile)
+        if (!timelineNav || navButtons.length === 0) {
+            return;
+        }
+        
         const navRect = timelineNav.getBoundingClientRect();
         const navTop = navRect.top + scrollY;
         const navBottom = navRect.bottom + scrollY;
@@ -372,6 +381,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function resetNavigation() {
+        // Skip if no navigation buttons exist (mobile)
+        if (navButtons.length === 0) {
+            return;
+        }
+        
         // Don't immediately reset - let the transition happen
         setTimeout(() => {
             navButtons.forEach(btn => {
@@ -382,16 +396,18 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 600);
     }
 
-    // Navigation button click handlers
-    navButtons.forEach((btn, i) => {
-        btn.addEventListener('click', () => {
-            const targetPosition = preTimelineHeight + (i * window.innerHeight);
-            window.scrollTo({
-                top: targetPosition,
-                behavior: 'smooth'
+    // Navigation button click handlers (only if buttons exist)
+    if (navButtons.length > 0) {
+        navButtons.forEach((btn, i) => {
+            btn.addEventListener('click', () => {
+                const targetPosition = preTimelineHeight + (i * window.innerHeight);
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: 'smooth'
+                });
             });
         });
-    });
+    }
 
     // Event listeners
     window.addEventListener('scroll', onScroll);

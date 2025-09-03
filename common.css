@@ -315,9 +315,9 @@ footer {
 
 /* Responsive */
 @media (max-width: 768px) {
+    /* Hide timeline navigation on mobile */
     .timeline-nav {
-        left: 1rem;
-        top: 5rem;
+        display: none !important;
     }
     
     .timeline-content section {
@@ -327,5 +327,13 @@ footer {
     
     .pre-timeline-content h1 {
         font-size: 2.5rem;
+    }
+    
+    .timeline-content section h2 {
+        font-size: 2rem;
+    }
+    
+    .timeline-content section p {
+        font-size: 1rem;
     }
 }
