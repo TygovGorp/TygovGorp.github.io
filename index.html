@@ -1,20 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TygovGorp</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Tygo</title>
+    <link rel="stylesheet" href="common.css">
 </head>
+
 <body>
-    <header>
-        <h1>Welcome to TygovGorp</h1>
-    </header>
-    <main>
-        <p>This is the base HTML template. Start building your site here.</p>
-    </main>
+    <nav id="navbar">
+        <a href="../home">
+            <div>
+                <p>Tygo</p>
+            </div>
+        </a>
+        <div class="nav-right">
+            <a href="../projects">
+                <div class="nav-el">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'/%3E%3Cpath d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'/%3E%3C/svg%3E"
+                        alt="Projects">
+                    <p>Projects</p>
+                </div>
+            </a>
+            <a href="../about">
+                <div class="nav-el">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3'/%3E%3Cpath d='M12 17h.01'/%3E%3C/svg%3E"
+                        alt="About">
+                    <p>About</p>
+                </div>
+            </a>
+        </div>
+    </nav>
+    <div class="blur"></div>
+
+    <!-- Content before timeline -->
+    <div class="pre-timeline-content">
+        <h1>Welcome to My Journey</h1>
+        <p>This is where you can add any content you want before the timeline begins. It could be an introduction, hero
+            section, or any other content that sets up your timeline story.</p>
+        <p style="margin-top: 2rem; opacity: 0.7; font-size: 0.9rem;">Scroll down to begin the timeline experience</p>
+    </div>
+
+    <!-- Timeline section -->
+    <div class="timeline-section">
+        <div id="timeline-scroll-area"></div>
+
+        <!-- Background overlays for smooth crossfade -->
+        <div class="background-overlay"
+            style="background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&h=1080&fit=crop');">
+        </div>
+        <div class="background-overlay"
+            style="background-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&h=1080&fit=crop');">
+        </div>
+        <div class="background-overlay"
+            style="background-image: url('https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=1920&h=1080&fit=crop');">
+        </div>
+        <div class="background-overlay"
+            style="background-image: url('https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1920&h=1080&fit=crop');">
+        </div>
+
+        <div class="timeline-container">
+            <div class="timeline-nav">
+                <button data-target="section1">Start</button>
+                <button data-target="section2">Milestone 1</button>
+                <button data-target="section3">Milestone 2</button>
+                <button data-target="section4">End</button>
+            </div>
+            <div class="timeline-content">
+                <section id="section1" data-bg-index="0">
+                    <h2>The Beginning</h2>
+                    <p>This is where my journey started. Every great story has a beginning, and this timeline represents
+                        the key moments that shaped my path forward. The adventure begins here with new possibilities
+                        and endless potential.</p>
+                </section>
+                <section id="section2" data-bg-index="1">
+                    <h2>First Milestone</h2>
+                    <p>A significant breakthrough that changed everything. This milestone represents overcoming
+                        challenges, learning new skills, and pushing boundaries. It's a testament to growth and the
+                        power of perseverance.</p>
+                </section>
+                <section id="section3" data-bg-index="2">
+                    <h2>Second Milestone</h2>
+                    <p>Building on previous success, this milestone shows continued evolution and refinement. It's about
+                        taking what was learned and applying it in new, innovative ways to reach even greater heights.
+                    </p>
+                </section>
+                <section id="section4" data-bg-index="3">
+                    <h2>The Journey Continues</h2>
+                    <p>While this marks the end of this particular timeline, it's really just the beginning of what's to
+                        come. The experiences gained and lessons learned become the foundation for future adventures and
+                        achievements.</p>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content after timeline -->
+    <div class="post-timeline-content">
+        <h2>Beyond the Timeline</h2>
+        <p>Here you can add more content after the timeline experience. This could include contact information,
+            additional projects, or any other content you want to showcase.</p>
+        <p>Here you can add more content after the timeline experience. This could include contact information,
+            additional projects, or any other content you want to showcase.</p>
+        <p>Here you can add more content after the timeline experience. This could include contact information,
+            additional projects, or any other content you want to showcase.</p>
+        <p>Here you can add more content after the timeline experience. This could include contact information,
+            additional projects, or any other content you want to showcase.</p>
+        <p>Here you can add more content after the timeline experience. This could include contact information,
+            additional projects, or any other content you want to showcase.</p>
+        <p>Here you can add more content after the timeline experience. This could include contact information,
+            additional projects, or any other content you want to showcase.</p>
+        <p>Here you can add more content after the timeline experience. This could include contact information,
+            additional projects, or any other content you want to showcase.</p>
+        <p>Here you can add more content after the timeline experience. This could include contact information,
+            additional projects, or any other content you want to showcase.</p>
+        <p>Here you can add more content after the timeline experience. This could include contact information,
+            additional projects, or any other content you want to showcase.</p>
+        <p>Here you can add more content after the timeline experience. This could include contact information,
+            additional projects, or any other content you want to showcase.</p>
+        <p>Here you can add more content after the timeline experience. This could include contact information,
+            additional projects, or any other content you want to showcase.</p>
+        <p>Here you can add more content after the timeline experience. This could include contact information,
+            additional projects, or any other content you want to showcase.</p>
+        <p>Here you can add more content after the timeline experience. This could include contact information,
+            additional projects, or any other content you want to showcase.</p>
+        <p>Here you can add more content after the timeline experience. This could include contact information,
+            additional projects, or any other content you want to showcase.</p>
+        <p>Here you can add more content after the timeline experience. This could include contact information,
+            additional projects, or any other content you want to showcase.</p>
+
+    </div>
+
     <footer>
         <p>&copy; 2024 TygovGorp</p>
     </footer>
+
+    <script src="script.js"></script>
 </body>
+
 </html>
