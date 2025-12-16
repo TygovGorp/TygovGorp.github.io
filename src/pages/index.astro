@@ -1,0 +1,615 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// Auto-load all project files from src/data/projects/
+const projectFiles = import.meta.glob('../data/projects/*.ts', { eager: true });
+const projects = Object.values(projectFiles).map((mod: any) => mod.default);
+---
+
+<BaseLayout title="Your Name - Graphics Programmer">
+  
+  <!-- Hero Section -->
+  <section id="home">
+    <div class="hero">
+      <h1>Your Name</h1>
+      <p class="subtitle">Graphics & Rendering Programmer</p>
+      <p class="intro">
+        Specializing in shader development and real-time rendering techniques. 
+        Focused on performance optimization and modern rendering pipelines.
+      </p>
+    </div>
+    <a href="#projects" class="scroll-indicator">
+      <span>Scroll</span>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 5v14M19 12l-7 7-7-7"/>
+      </svg>
+    </a>
+  </section>
+
+  <!-- Projects Section -->
+  <section id="projects">
+    <h2 class="section-title">Projects</h2>
+    {projects.length === 0 ? (
+      <div class="no-projects">
+        <p>No projects found. Add project files to <code>src/data/projects/</code></p>
+      </div>
+    ) : (
+      <div class="projects-list">
+        {projects.map((project, index) => (
+          <article class="project" data-project-index={index}>
+            <div class="project-header">
+              <h3>{project.title}</h3>
+              <a href={project.github} target="_blank" class="github-link" onclick="event.stopPropagation()">GitHub →</a>
+            </div>
+            
+            <div class="project-media">
+              {/* <img src={project.image} alt={project.title} /> */}
+              <div class="placeholder">Add project video/image (16:9)</div>
+            </div>
+            
+            <p class="project-description">{project.description}</p>
+            
+            <div class="tech-list">
+              {project.tech.map(item => (
+                <span class="tech-tag">{item}</span>
+              ))}
+            </div>
+          </article>
+        ))}
+      </div>
+    )}
+  </section>
+
+  <!-- Modal -->
+  <div id="project-modal" class="modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <button class="modal-close" aria-label="Close modal">×</button>
+      <div class="modal-body">
+        <div class="modal-header">
+          <h2 id="modal-title"></h2>
+          <a id="modal-github" target="_blank" class="modal-github-link">View on GitHub →</a>
+        </div>
+        
+        <div id="modal-media" class="modal-media">
+          <div class="placeholder">Project media</div>
+        </div>
+        
+        <div class="modal-section">
+          <h3>Overview</h3>
+          <p id="modal-full-description"></p>
+        </div>
+        
+        <div class="modal-section">
+          <h3>Key Features</h3>
+          <ul id="modal-features"></ul>
+        </div>
+        
+        <div class="modal-section">
+          <h3>Technical Details</h3>
+          <div id="modal-tech-tags" class="tech-list"></div>
+        </div>
+        
+        <div class="modal-section">
+          <h3>Code Sample</h3>
+          <pre><code id="modal-code"></code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script define:vars={{ projects }}>
+    // Only run if there are projects
+    if (projects && projects.length > 0) {
+      // Open modal
+      document.querySelectorAll('.project').forEach((card, index) => {
+        card.addEventListener('click', () => {
+          const project = projects[index];
+          const modal = document.getElementById('project-modal');
+          
+          // Populate modal
+          document.getElementById('modal-title').textContent = project.title;
+          document.getElementById('modal-github').href = project.github;
+          document.getElementById('modal-full-description').textContent = project.fullDescription || project.description;
+          
+          // Features
+          const featuresList = document.getElementById('modal-features');
+          featuresList.innerHTML = '';
+          if (project.features) {
+            project.features.forEach(feature => {
+              const li = document.createElement('li');
+              li.textContent = feature;
+              featuresList.appendChild(li);
+            });
+          }
+          
+          // Tech tags
+          const techContainer = document.getElementById('modal-tech-tags');
+          techContainer.innerHTML = '';
+          project.tech.forEach(tech => {
+            const span = document.createElement('span');
+            span.className = 'tech-tag';
+            span.textContent = tech;
+            techContainer.appendChild(span);
+          });
+          
+          // Code
+          document.getElementById('modal-code').textContent = project.codeSnippet || '// No code sample available';
+          
+          // Show modal
+          modal.classList.add('active');
+          document.body.style.overflow = 'hidden';
+        });
+      });
+      
+      // Close modal
+      const modal = document.getElementById('project-modal');
+      const closeBtn = document.querySelector('.modal-close');
+      const backdrop = document.querySelector('.modal-backdrop');
+      
+      function closeModal() {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+      
+      closeBtn.addEventListener('click', closeModal);
+      backdrop.addEventListener('click', closeModal);
+      
+      // Close on ESC
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+          closeModal();
+        }
+      });
+    }
+  </script>
+
+  <!-- About Section -->
+  <section id="about">
+    <h2 class="section-title">About</h2>
+    <div class="about-content">
+      <div class="about-text">
+        <p>
+          [Add your background here - education, experience, what drives your interest in graphics programming]
+        </p>
+        <p>
+          [Current focus areas, what you're learning, what types of projects you're interested in]
+        </p>
+      </div>
+      
+      <div class="skills-contact">
+        <div class="skills">
+          <h3>Technical Skills</h3>
+          <ul>
+            <li>GLSL / HLSL shader programming</li>
+            <li>OpenGL / DirectX / Vulkan</li>
+            <li>Real-time rendering techniques</li>
+            <li>Performance profiling & optimization</li>
+            <li>C++ / C#</li>
+          </ul>
+        </div>
+        
+        <div class="contact">
+          <h3>Contact</h3>
+          <p>
+            <a href="mailto:your.email@example.com">your.email@example.com</a><br>
+            <a href="https://github.com/yourusername" target="_blank">GitHub</a><br>
+            <a href="https://linkedin.com/in/yourprofile" target="_blank">LinkedIn</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>
+
+<style>
+  /* Hero */
+  #home {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0 2rem;
+    height: 100vh;
+    min-height: 100vh;
+    max-width: none;
+  }
+
+  .hero {
+    text-align: center;
+    max-width: 700px;
+  }
+
+  h1 {
+    font-size: 3.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #fff;
+  }
+
+  .subtitle {
+    font-size: 1.25rem;
+    color: #888;
+    margin-bottom: 2rem;
+  }
+
+  .intro {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #bbb;
+  }
+
+  .scroll-indicator {
+    position: absolute;
+    bottom: 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    color: #666;
+    text-decoration: none;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    animation: bounce 2s infinite;
+    transition: color 0.2s;
+  }
+
+  .scroll-indicator:hover {
+    color: #999;
+  }
+
+  .scroll-indicator svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  @keyframes bounce {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(8px);
+    }
+  }
+
+  /* Section Titles */
+  .section-title {
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+    color: #fff;
+    text-align: center;
+  }
+
+  /* Projects */
+  .no-projects {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #666;
+  }
+
+  .no-projects code {
+    color: #888;
+  }
+
+  .projects-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+
+  .project {
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 8px;
+    padding: 2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .project:hover {
+    transform: translateY(-8px);
+    border-color: #444;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+  }
+
+  .project:hover .project-media {
+    border-color: #333;
+  }
+
+  .project-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .project h3 {
+    font-size: 1.75rem;
+    color: #fff;
+  }
+
+  .github-link {
+    color: #fff;
+    text-decoration: none;
+    font-size: 0.95rem;
+    border-bottom: 1px solid #555;
+    transition: border-color 0.2s;
+  }
+
+  .github-link:hover {
+    border-color: #fff;
+  }
+
+  .project-media {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #1a1a1a;
+    border: 1px solid #222;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+
+  .placeholder {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #555;
+  }
+
+  .project-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .project-description {
+    margin-bottom: 1.5rem;
+    line-height: 1.7;
+    color: #bbb;
+  }
+
+  .tech-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .tech-tag {
+    background: #1a1a1a;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: #999;
+    border: 1px solid #222;
+  }
+
+  /* About */
+  .about-content {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .about-text {
+    margin-bottom: 3rem;
+  }
+
+  .about-text p {
+    margin-bottom: 1.5rem;
+    line-height: 1.8;
+    color: #bbb;
+  }
+
+  .skills-contact {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+  }
+
+  .skills h3,
+  .contact h3 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    color: #fff;
+  }
+
+  .skills ul {
+    list-style-position: inside;
+    line-height: 2;
+  }
+
+  .contact a {
+    color: #fff;
+    text-decoration: none;
+    border-bottom: 1px solid #555;
+    transition: border-color 0.2s;
+  }
+
+  .contact a:hover {
+    border-color: #fff;
+  }
+
+  /* Modal */
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    display: none;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .modal.active {
+    display: block;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 1000px;
+    max-height: 90vh;
+    background: #0a0a0a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  }
+
+  .modal-close {
+    position: sticky;
+    top: 1rem;
+    right: 1rem;
+    float: right;
+    width: 40px;
+    height: 40px;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 10;
+  }
+
+  .modal-close:hover {
+    background: #222;
+    border-color: #555;
+  }
+
+  .modal-body {
+    padding: 3rem;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .modal-header h2 {
+    font-size: 2.5rem;
+    color: #fff;
+    margin: 0;
+  }
+
+  .modal-github-link {
+    color: #fff;
+    text-decoration: none;
+    font-size: 1rem;
+    border-bottom: 1px solid #555;
+    transition: border-color 0.2s;
+  }
+
+  .modal-github-link:hover {
+    border-color: #fff;
+  }
+
+  .modal-media {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #1a1a1a;
+    border: 1px solid #222;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+
+  .modal-section {
+    margin-bottom: 2.5rem;
+  }
+
+  .modal-section h3 {
+    font-size: 1.5rem;
+    color: #fff;
+    margin-bottom: 1rem;
+  }
+
+  .modal-section p {
+    line-height: 1.8;
+    color: #bbb;
+    white-space: pre-line;
+  }
+
+  .modal-section ul {
+    list-style-position: inside;
+    line-height: 2;
+    color: #bbb;
+  }
+
+  .modal-section pre {
+    margin: 0;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    nav {
+      padding: 1.5rem 2rem;
+    }
+
+    section {
+      padding: 6rem 1.5rem 3rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+    }
+
+    .section-title {
+      font-size: 2rem;
+    }
+
+    .projects-list {
+      grid-template-columns: 1fr;
+    }
+
+    .project {
+      padding: 1.5rem;
+    }
+
+    .skills-contact {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    .modal-body {
+      padding: 2rem 1.5rem;
+    }
+
+    .modal-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .modal-header h2 {
+      font-size: 2rem;
+    }
+  }
+</style>
