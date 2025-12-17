@@ -4,14 +4,21 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 // Auto-load all project files from src/data/projects/
 const projectFiles = import.meta.glob('../data/projects/*.ts', { eager: true });
 const projects = Object.values(projectFiles).map((mod: any) => mod.default);
+
+// Auto-load recent blog posts (3 most recent)
+const blogFiles = import.meta.glob('../data/blog/*.ts', { eager: true });
+const allPosts = Object.values(blogFiles)
+  .map((mod: any) => mod.default)
+  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+const recentPosts = allPosts.slice(0, 3);
 ---
 
-<BaseLayout title="Tygo van Gorp - Graphics Programmer">
+<BaseLayout title="Your Name - Graphics Programmer">
   
   <!-- Hero Section -->
   <section id="home">
     <div class="hero">
-      <h1>Tygo van Gorp</h1>
+      <h1>Your Name</h1>
       <p class="subtitle">Graphics & Rendering Programmer</p>
       <p class="intro">
         Specializing in shader development and real-time rendering techniques. 
@@ -58,6 +65,74 @@ const projects = Object.values(projectFiles).map((mod: any) => mod.default);
         ))}
       </div>
     )}
+  </section>
+
+  <!-- Blog Section -->
+  <section id="blog">
+    <h2 class="section-title">Recent Posts</h2>
+    {recentPosts.length === 0 ? (
+      <div class="no-posts">
+        <p>No blog posts yet. Add posts to <code>src/data/blog/</code></p>
+      </div>
+    ) : (
+      <div class="blog-grid">
+        {recentPosts.map(post => (
+          <a href={`/blog/${post.slug}`} class="blog-card">
+            <time class="blog-date">{new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</time>
+            <h3>{post.title}</h3>
+            <p class="blog-excerpt">{post.excerpt}</p>
+            <div class="blog-tags">
+              {post.tags.slice(0, 3).map(tag => (
+                <span class="tag-small">{tag}</span>
+              ))}
+            </div>
+            <span class="read-more-inline">Read more →</span>
+          </a>
+        ))}
+      </div>
+    )}
+    {allPosts.length > 3 && (
+      <div class="view-all">
+        <a href="/blog" class="view-all-link">View all posts →</a>
+      </div>
+    )}
+  </section>
+
+  <!-- About Section -->
+  <section id="about">
+    <h2 class="section-title">About</h2>
+    <div class="about-content">
+      <div class="about-text">
+        <p>
+          [Add your background here - education, experience, what drives your interest in graphics programming]
+        </p>
+        <p>
+          [Current focus areas, what you're learning, what types of projects you're interested in]
+        </p>
+      </div>
+      
+      <div class="skills-contact">
+        <div class="skills">
+          <h3>Technical Skills</h3>
+          <ul>
+            <li>GLSL / HLSL shader programming</li>
+            <li>OpenGL / DirectX / Vulkan</li>
+            <li>Real-time rendering techniques</li>
+            <li>Performance profiling & optimization</li>
+            <li>C++ / C#</li>
+          </ul>
+        </div>
+        
+        <div class="contact">
+          <h3>Contact</h3>
+          <p>
+            <a href="mailto:your.email@example.com">your.email@example.com</a><br>
+            <a href="https://github.com/yourusername" target="_blank">GitHub</a><br>
+            <a href="https://linkedin.com/in/yourprofile" target="_blank">LinkedIn</a>
+          </p>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- Modal -->
@@ -163,44 +238,6 @@ const projects = Object.values(projectFiles).map((mod: any) => mod.default);
       });
     }
   </script>
-
-  <!-- About Section -->
-  <section id="about">
-    <h2 class="section-title">About</h2>
-    <div class="about-content">
-      <div class="about-text">
-        <p>
-          [Add your background here - education, experience, what drives your interest in graphics programming]
-        </p>
-        <p>
-          [Current focus areas, what you're learning, what types of projects you're interested in]
-        </p>
-      </div>
-      
-      <div class="skills-contact">
-        <div class="skills">
-          <h3>Technical Skills</h3>
-          <ul>
-            <li>GLSL / HLSL shader programming</li>
-            <li>OpenGL / DirectX / Vulkan</li>
-            <li>Real-time rendering techniques</li>
-            <li>Performance profiling & optimization</li>
-            <li>C++ / C#</li>
-          </ul>
-        </div>
-        
-        <div class="contact">
-          <h3>Contact</h3>
-          <p>
-            <a href="mailto:your.email@example.com">your.email@example.com</a><br>
-            <a href="https://github.com/yourusername" target="_blank">GitHub</a><br>
-            <a href="https://linkedin.com/in/yourprofile" target="_blank">LinkedIn</a>
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-
 </BaseLayout>
 
 <style>
@@ -387,6 +424,106 @@ const projects = Object.values(projectFiles).map((mod: any) => mod.default);
     font-size: 0.85rem;
     color: #999;
     border: 1px solid #222;
+  }
+
+  /* Blog Cards on Homepage */
+  .blog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+  }
+
+  .blog-card {
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 8px;
+    padding: 2rem;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+  }
+
+  .blog-card:hover {
+    transform: translateY(-4px);
+    border-color: #444;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+  }
+
+  .blog-date {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+
+  .blog-card h3 {
+    font-size: 1.5rem;
+    color: #fff;
+    margin-bottom: 0.75rem;
+    line-height: 1.3;
+  }
+
+  .blog-excerpt {
+    color: #bbb;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    flex-grow: 1;
+  }
+
+  .blog-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .tag-small {
+    background: #1a1a1a;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    color: #777;
+    border: 1px solid #222;
+  }
+
+  .read-more-inline {
+    color: #888;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+  }
+
+  .blog-card:hover .read-more-inline {
+    color: #fff;
+  }
+
+  .view-all {
+    text-align: center;
+    margin-top: 3rem;
+  }
+
+  .view-all-link {
+    color: #fff;
+    text-decoration: none;
+    font-size: 1rem;
+    border-bottom: 1px solid #555;
+    transition: border-color 0.2s;
+    padding-bottom: 0.25rem;
+  }
+
+  .view-all-link:hover {
+    border-color: #fff;
+  }
+
+  .no-posts {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #666;
+  }
+
+  .no-posts code {
+    color: #888;
   }
 
   /* About */

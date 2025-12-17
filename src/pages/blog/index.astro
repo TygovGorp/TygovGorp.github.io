@@ -1,0 +1,185 @@
+﻿---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+// Auto-load all blog posts
+const blogFiles = import.meta.glob('../../data/blog/*.ts', { eager: true });
+const posts = Object.values(blogFiles)
+  .map((mod: any) => mod.default)
+  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+---
+
+<BaseLayout title="Blog - Your Name">
+  <div class="blog-container">
+    <h1 class="page-title">Blog</h1>
+    <p class="page-subtitle">Thoughts on graphics programming and rendering techniques</p>
+    
+    {posts.length === 0 ? (
+      <div class="no-posts">
+        <p>No blog posts yet. Add posts to <code>src/data/blog/</code></p>
+      </div>
+    ) : (
+      <div class="timeline">
+        {posts.map((post, index) => (
+          <article class="timeline-item">
+            <div class="timeline-marker"></div>
+            <div class="timeline-content">
+              <time class="post-date">{new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
+              <a href={`/blog/${post.slug}`} class="post-link">
+                <h2>{post.title}</h2>
+              </a>
+              <p class="post-excerpt">{post.excerpt}</p>
+              <div class="post-tags">
+                {post.tags.map(tag => (
+                  <span class="tag">{tag}</span>
+                ))}
+              </div>
+              <a href={`/blog/${post.slug}`} class="read-more">Read more →</a>
+            </div>
+          </article>
+        ))}
+      </div>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .blog-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+  }
+
+  .page-title {
+    font-size: 3rem;
+    color: #fff;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+
+  .page-subtitle {
+    text-align: center;
+    color: #888;
+    font-size: 1.1rem;
+    margin-bottom: 4rem;
+  }
+
+  .no-posts {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #666;
+  }
+
+  .timeline {
+    position: relative;
+    padding-left: 2rem;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #222;
+  }
+
+  .timeline-item {
+    position: relative;
+    padding-bottom: 3rem;
+  }
+
+  .timeline-item:last-child {
+    padding-bottom: 0;
+  }
+
+  .timeline-marker {
+    position: absolute;
+    left: -2rem;
+    top: 0.5rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #fff;
+    border: 3px solid #0a0a0a;
+    z-index: 1;
+  }
+
+  .timeline-content {
+    padding-left: 2rem;
+  }
+
+  .post-date {
+    display: block;
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+  }
+
+  .post-link {
+    text-decoration: none;
+  }
+
+  .post-link h2 {
+    font-size: 1.75rem;
+    color: #fff;
+    margin-bottom: 0.75rem;
+    transition: color 0.2s;
+  }
+
+  .post-link:hover h2 {
+    color: #ccc;
+  }
+
+  .post-excerpt {
+    color: #bbb;
+    line-height: 1.7;
+    margin-bottom: 1rem;
+  }
+
+  .post-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .tag {
+    background: #1a1a1a;
+    padding: 0.25rem 0.6rem;
+    border-radius: 3px;
+    font-size: 0.85rem;
+    color: #888;
+    border: 1px solid #222;
+  }
+
+  .read-more {
+    color: #fff;
+    text-decoration: none;
+    font-size: 0.95rem;
+    border-bottom: 1px solid #555;
+    transition: border-color 0.2s;
+  }
+
+  .read-more:hover {
+    border-color: #fff;
+  }
+
+  @media (max-width: 768px) {
+    .blog-container {
+      padding: 3rem 1.5rem;
+    }
+
+    .page-title {
+      font-size: 2.5rem;
+    }
+
+    .timeline {
+      padding-left: 1.5rem;
+    }
+
+    .timeline-content {
+      padding-left: 1.5rem;
+    }
+  }
+</style>

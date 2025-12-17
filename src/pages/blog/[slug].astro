@@ -1,0 +1,160 @@
+﻿---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+// Get all blog posts
+const blogFiles = import.meta.glob('../../data/blog/*.ts', { eager: true });
+const posts = Object.values(blogFiles).map((mod: any) => mod.default);
+
+// Get the current post
+const { slug } = Astro.params;
+const post = posts.find((p) => p.slug === slug);
+
+if (!post) {
+  return Astro.redirect('/blog');
+}
+
+// Parse markdown-style content (basic)
+function parseContent(content: string) {
+  return content
+    .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+    .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+    .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+    .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/^(.+)$/gm, '<p>$1</p>')
+    .replace(/<p><h/g, '<h')
+    .replace(/<\/h(\d)><\/p>/g, '</h$1>')
+    .replace(/<p><pre>/g, '<pre>')
+    .replace(/<\/pre><\/p>/g, '</pre>');
+}
+---
+
+<BaseLayout title={`${post.title} - Your Name`}>
+  <article class="blog-post">
+    <header class="post-header">
+      <a href="/blog" class="back-link">← Back to Blog</a>
+      <time class="post-date">{new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
+      <h1 class="post-title">{post.title}</h1>
+      <div class="post-tags">
+        {post.tags.map(tag => (
+          <span class="tag">{tag}</span>
+        ))}
+      </div>
+    </header>
+    
+    <div class="post-content" set:html={parseContent(post.content)} />
+  </article>
+</BaseLayout>
+
+<style>
+  .blog-post {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+  }
+
+  .post-header {
+    margin-bottom: 3rem;
+  }
+
+  .back-link {
+    display: inline-block;
+    color: #888;
+    text-decoration: none;
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+    transition: color 0.2s;
+  }
+
+  .back-link:hover {
+    color: #fff;
+  }
+
+  .post-date {
+    display: block;
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 1rem;
+  }
+
+  .post-title {
+    font-size: 3rem;
+    color: #fff;
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+  }
+
+  .post-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .tag {
+    background: #1a1a1a;
+    padding: 0.25rem 0.6rem;
+    border-radius: 3px;
+    font-size: 0.85rem;
+    color: #888;
+    border: 1px solid #222;
+  }
+
+  .post-content {
+    color: #bbb;
+    line-height: 1.8;
+  }
+
+  .post-content :global(h1) {
+    font-size: 2.5rem;
+    color: #fff;
+    margin: 3rem 0 1.5rem;
+  }
+
+  .post-content :global(h2) {
+    font-size: 2rem;
+    color: #fff;
+    margin: 2.5rem 0 1rem;
+  }
+
+  .post-content :global(h3) {
+    font-size: 1.5rem;
+    color: #fff;
+    margin: 2rem 0 1rem;
+  }
+
+  .post-content :global(p) {
+    margin-bottom: 1.5rem;
+  }
+
+  .post-content :global(pre) {
+    background: #1a1a1a;
+    padding: 1.5rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    border: 1px solid #222;
+    margin: 2rem 0;
+  }
+
+  .post-content :global(code) {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+  }
+
+  @media (max-width: 768px) {
+    .blog-post {
+      padding: 3rem 1.5rem;
+    }
+
+    .post-title {
+      font-size: 2.5rem;
+    }
+
+    .post-content :global(h1) {
+      font-size: 2rem;
+    }
+
+    .post-content :global(h2) {
+      font-size: 1.5rem;
+    }
+  }
+</style>
