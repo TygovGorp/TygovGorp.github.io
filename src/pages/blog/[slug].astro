@@ -19,19 +19,81 @@ export async function getStaticPaths() {
 // Get the post from props
 const { post } = Astro.props;
 
-// Parse markdown-style content (basic)
+// Parse markdown-style content with list support
+// Parse markdown-style content with list support (space-based indentation)
 function parseContent(content: string) {
-  return content
+  const lines = content.split('\n');
+  const result: string[] = [];
+  let inList = false;
+  let listStack: number[] = []; // Track indentation depth
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const listMatch = line.match(/^( *)- (.+)$/);
+    
+    if (listMatch) {
+      const spaces = listMatch[1].length;
+      const depth = Math.floor(spaces / 4); // 4 spaces = 1 level
+      const content = listMatch[2];
+      
+      // Open new lists as needed
+      while (listStack.length <= depth) {
+        result.push('<ul>');
+        listStack.push(depth);
+      }
+      
+      // Close lists if we decreased depth
+      while (listStack.length > 0 && listStack[listStack.length - 1] > depth) {
+        result.push('</li></ul>');
+        listStack.pop();
+      }
+      
+      // Close previous item if at same depth
+      if (inList && listStack.length > 0) {
+        result.push('</li>');
+      }
+      
+      result.push(`<li>${content}`);
+      inList = true;
+    } else {
+      // Close all open lists when we hit non-list content
+      while (listStack.length > 0) {
+        result.push('</li></ul>');
+        listStack.pop();
+      }
+      inList = false;
+      
+      // Process non-list line
+      if (line.trim()) {
+        result.push(line);
+      } else {
+        result.push('\n');
+      }
+    }
+  }
+  
+  // Close any remaining open lists
+  while (listStack.length > 0) {
+    result.push('</li></ul>');
+    listStack.pop();
+  }
+  
+  // Join and apply other markdown transformations
+  return result.join('\n')
     .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-    .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+    .replace(/^## (.*$)/gm, '<h2>$2</h2>')
     .replace(/^### (.*$)/gm, '<h3>$1</h3>')
     .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
-    .replace(/\n\n/g, '</p><p>')
+    .replace(/\n\n+/g, '</p><p>')
     .replace(/^(.+)$/gm, '<p>$1</p>')
     .replace(/<p><h/g, '<h')
     .replace(/<\/h(\d)><\/p>/g, '</h$1>')
     .replace(/<p><pre>/g, '<pre>')
-    .replace(/<\/pre><\/p>/g, '</pre>');
+    .replace(/<\/pre><\/p>/g, '</pre>')
+    .replace(/<p><ul>/g, '<ul>')
+    .replace(/<\/ul><\/p>/g, '</ul>')
+    .replace(/<p><li>/g, '<li>')
+    .replace(/<\/li><\/p>/g, '</li>');
 }
 ---
 
@@ -161,6 +223,21 @@ function parseContent(content: string) {
 
     .post-content :global(h2) {
       font-size: 1.5rem;
+    }
+
+    ul {
+      margin: 0.5em 0;
+      padding-left: 2em;
+    }
+    
+    li {
+      margin: 0;
+      padding: 0.1em 0;
+      line-height: 1.4;
+    }
+    
+    li > ul {
+      margin: 0.2em 0;
     }
   }
 </style>
