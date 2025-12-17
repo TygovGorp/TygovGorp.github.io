@@ -5,13 +5,19 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 const blogFiles = import.meta.glob('../../data/blog/*.ts', { eager: true });
 const posts = Object.values(blogFiles).map((mod: any) => mod.default);
 
-// Get the current post
-const { slug } = Astro.params;
-const post = posts.find((p) => p.slug === slug);
-
-if (!post) {
-  return Astro.redirect('/blog');
+// Tell Astro which paths to generate
+export async function getStaticPaths() {
+  const blogFiles = import.meta.glob('../../data/blog/*.ts', { eager: true });
+  const posts = Object.values(blogFiles).map((mod: any) => mod.default);
+  
+  return posts.map(post => ({
+    params: { slug: post.slug },
+    props: { post }
+  }));
 }
+
+// Get the post from props
+const { post } = Astro.props;
 
 // Parse markdown-style content (basic)
 function parseContent(content: string) {
@@ -50,7 +56,7 @@ function parseContent(content: string) {
   .blog-post {
     max-width: 800px;
     margin: 0 auto;
-    padding: 4rem 2rem;
+    padding: 8rem 2rem 4rem;
   }
 
   .post-header {
@@ -142,7 +148,7 @@ function parseContent(content: string) {
 
   @media (max-width: 768px) {
     .blog-post {
-      padding: 3rem 1.5rem;
+      padding: 7rem 1.5rem 3rem;
     }
 
     .post-title {

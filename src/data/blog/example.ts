@@ -1,8 +1,8 @@
 export default {
-    title: 'Getting Started with PBR Rendering',
+    title: 'Comparing Multiple Importance Sampling stratagies',
     slug: 'getting-started-pbr',
-    date: '2024-01-15',
-    excerpt: 'A deep dive into implementing physically-based rendering from scratch.',
+    date: '2025-01-15',
+    excerpt: 'A deep dive into (combinations) of sampling stratagies for Multiple Importance Sampling',
     content: `
 # Getting Started with PBR Rendering
 
@@ -26,5 +26,5 @@ vec3 calculatePBR() {
 
 PBR is essential for modern graphics...
   `,
-    tags: ['Graphics', 'Rendering', 'OpenGL']
+    tags: ['Graphics', 'MIS']
 };
