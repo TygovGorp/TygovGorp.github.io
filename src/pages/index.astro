@@ -13,12 +13,12 @@ const allPosts = Object.values(blogFiles)
 const recentPosts = allPosts.slice(0, 3);
 ---
 
-<BaseLayout title="Your Name - Graphics Programmer">
+<BaseLayout title="Tygo van Gorp - Graphics Programmer">
   
   <!-- Hero Section -->
   <section id="home">
     <div class="hero">
-      <h1>Your Name</h1>
+      <h1>Tygo van Gorp</h1>
       <p class="subtitle">Graphics & Rendering Programmer</p>
       <p class="intro">
         Specializing in shader development and real-time rendering techniques. 
@@ -105,6 +105,22 @@ const recentPosts = allPosts.slice(0, 3);
       <div class="about-text">
         <p>
           [Add your background here - education, experience, what drives your interest in graphics programming]
+
+            <table>
+              <tbody>
+                <tr>
+                  <td>Breda University Of Applied Sciences</td>
+                  <td>Creative Media & Game Technologies - Programming</td>
+                  <td>Sep 2025 to Apr 2028</td>
+                </tr>
+                <tr>
+                  <td>Cambridge</td>
+                  <td>B2 First English</td>
+                  <td>Aug 2022</td>
+                </tr>
+              </tbody>
+            </table>
+
         </p>
         <p>
           [Current focus areas, what you're learning, what types of projects you're interested in]
@@ -116,10 +132,10 @@ const recentPosts = allPosts.slice(0, 3);
           <h3>Technical Skills</h3>
           <ul>
             <li>GLSL / HLSL shader programming</li>
-            <li>OpenGL / DirectX / Vulkan</li>
+            <li>OpenGL / DirectX / PS5</li>
             <li>Real-time rendering techniques</li>
             <li>Performance profiling & optimization</li>
-            <li>C++ / C#</li>
+            <li>C++</li>
           </ul>
         </div>
         
@@ -530,6 +546,30 @@ const recentPosts = allPosts.slice(0, 3);
   .about-content {
     max-width: 900px;
     margin: 0 auto;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  th, td {
+    border-right: 1px solid #444;
+    padding: 0.75rem 1rem;
+    text-align: left;
+  }
+
+  th:last-child, td:last-child {
+    border-right: none;
+  }
+
+  th {
+    background: #1a1a1a;
+    color: #fff;
+  }
+
+  tr:nth-child(even) {
+    background: #111;
   }
 
   .about-text {
