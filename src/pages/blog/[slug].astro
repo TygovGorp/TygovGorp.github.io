@@ -19,13 +19,15 @@ export async function getStaticPaths() {
 // Get the post from props
 const { post } = Astro.props;
 
+// Check if content contains HTML tags (style, script, div with class)
+const containsHTML = /<style>|<script>|<div class=/.test(post.content);
+
 // Parse markdown-style content with list support
-// Parse markdown-style content with list support (space-based indentation)
 function parseContent(content: string) {
   const lines = content.split('\n');
   const result: string[] = [];
   let inList = false;
-  let listStack: number[] = []; // Track indentation depth
+  let listStack: number[] = [];
   
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -33,22 +35,19 @@ function parseContent(content: string) {
     
     if (listMatch) {
       const spaces = listMatch[1].length;
-      const depth = Math.floor(spaces / 4); // 4 spaces = 1 level
+      const depth = Math.floor(spaces / 4);
       const content = listMatch[2];
       
-      // Open new lists as needed
       while (listStack.length <= depth) {
         result.push('<ul>');
         listStack.push(depth);
       }
       
-      // Close lists if we decreased depth
       while (listStack.length > 0 && listStack[listStack.length - 1] > depth) {
         result.push('</li></ul>');
         listStack.pop();
       }
       
-      // Close previous item if at same depth
       if (inList && listStack.length > 0) {
         result.push('</li>');
       }
@@ -56,14 +55,12 @@ function parseContent(content: string) {
       result.push(`<li>${content}`);
       inList = true;
     } else {
-      // Close all open lists when we hit non-list content
       while (listStack.length > 0) {
         result.push('</li></ul>');
         listStack.pop();
       }
       inList = false;
       
-      // Process non-list line
       if (line.trim()) {
         result.push(line);
       } else {
@@ -72,18 +69,19 @@ function parseContent(content: string) {
     }
   }
   
-  // Close any remaining open lists
   while (listStack.length > 0) {
     result.push('</li></ul>');
     listStack.pop();
   }
   
-  // Join and apply other markdown transformations
   return result.join('\n')
     .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-    .replace(/^## (.*$)/gm, '<h2>$2</h2>')
+    .replace(/^## (.*$)/gm, '<h2>$1</h2>')
     .replace(/^### (.*$)/gm, '<h3>$1</h3>')
     .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" />')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/\n\n+/g, '</p><p>')
     .replace(/^(.+)$/gm, '<p>$1</p>')
     .replace(/<p><h/g, '<h')
@@ -93,8 +91,13 @@ function parseContent(content: string) {
     .replace(/<p><ul>/g, '<ul>')
     .replace(/<\/ul><\/p>/g, '</ul>')
     .replace(/<p><li>/g, '<li>')
-    .replace(/<\/li><\/p>/g, '</li>');
+    .replace(/<\/li><\/p>/g, '</li>')
+    .replace(/<p><img/g, '<img')
+    .replace(/\/><\/p>/g, '/>');
 }
+
+// Use raw HTML if post contains HTML, otherwise parse markdown
+const processedContent = containsHTML ? post.content : parseContent(post.content);
 ---
 
 <BaseLayout title={`${post.title} - Your Name`}>
@@ -110,13 +113,13 @@ function parseContent(content: string) {
       </div>
     </header>
     
-    <div class="post-content" set:html={parseContent(post.content)} />
+    <div class="post-content" set:html={processedContent} />
   </article>
 </BaseLayout>
 
 <style>
   .blog-post {
-    max-width: 800px;
+    max-width: 1400px; /* INCREASE from 800px to accommodate the matrix */
     margin: 0 auto;
     padding: 8rem 2rem 4rem;
   }
@@ -208,6 +211,31 @@ function parseContent(content: string) {
     font-size: 0.9em;
   }
 
+  .post-content :global(ul) {
+    margin: 0.5em 0;
+    padding-left: 2em;
+  }
+  
+  .post-content :global(li) {
+    margin: 0;
+    padding: 0.1em 0;
+    line-height: 1.4;
+  }
+  
+  .post-content :global(li > ul) {
+    margin: 0.2em 0;
+  }
+
+  .post-content :global(img) {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid #222;
+    margin: 2rem auto;
+    background: #1a1a1a;
+  }
+
   @media (max-width: 768px) {
     .blog-post {
       padding: 7rem 1.5rem 3rem;
@@ -223,21 +251,6 @@ function parseContent(content: string) {
 
     .post-content :global(h2) {
       font-size: 1.5rem;
-    }
-
-    ul {
-      margin: 0.5em 0;
-      padding-left: 2em;
-    }
-    
-    li {
-      margin: 0;
-      padding: 0.1em 0;
-      line-height: 1.4;
-    }
-    
-    li > ul {
-      margin: 0.2em 0;
     }
   }
 </style>
