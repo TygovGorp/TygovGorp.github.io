@@ -120,12 +120,12 @@ $$
 
 <h2>Baseline</h2>
 <ul>
-<li><strong>BSDF only</strong>: Pure importance sampling, no NEE</li>
+<li><strong>BSDF only</strong>: Pure importance sampling, no Next Event Estimation</li>
 </ul>
 
 <h2>Two-Technique MIS</h2>
 <ul>
-<li><strong>BSDF + Light</strong>: Standard path tracing with NEE</li>
+<li><strong>BSDF + Light</strong>: Standard path tracing with Next Event Estimation</li>
 <li><strong>BSDF + Env</strong>: BSDF with environment sampling</li>
 <li><strong>BSDF + Light + Env</strong>: All three combined</li>
 </ul>
@@ -150,15 +150,44 @@ $$
 <h1>Results and Analysis</h1>
 
 <style>
+h1 {
+    font-size: 1.75rem;
+    color: #fff;
+    margin: 3rem 0 1.5rem;
+}
+
+h2 {
+    font-size: 1.5rem;
+    color: #fff;
+    margin: 2.5rem 0 1rem;
+}
+
+h3 {
+    font-size: 1.17rem;
+    color: #fff;
+    margin: 2rem 0 1rem;
+}
+
+p {
+    margin-bottom: 1rem;
+}
+    
+a:link,
+a:visited {
+  color: #5ca3ff;
+  text-decoration: none;
+  border-bottom: 1px solid #5ca3ff;
+  transition: color 0.2s, border-color 0.2s;
+}
+a:hover {
+  color: #7db8ff;
+  border-color: #7db8ff;
+}
+
 .comparison-section {
-    margin: 3rem 0;
-    width: 98vw;
-    position: relative;
-    left: 50%;
-    right: 50%;
-    margin-left: -50vw;
-    margin-right: -49vw;
-    padding: 0 1rem;
+    margin: 3rem auto;
+    max-width: 1400px;
+    padding: 0 2rem; 
 }
 
 .scene-selector {
@@ -312,15 +341,17 @@ $$
 }
 
 
-..metric-cell {
+.metric-cell {
     display: flex;
-    flex-direction: column;
+    flex-direction: column;s
     gap: 0.5rem;
     padding: 0.75rem;
     font-size: 0.8rem;
     color: #bbb;
     background: #0a0a0a;
     border-radius: 6px;
+    min-width: 110px;
+    min-height: 120px; 
 }
 
 .metric-header {
@@ -358,13 +389,6 @@ $$
 .metric-value-number.highlight {
     color: #4a9eff;
     font-size: 0.95rem;
-}
-
-/* Remove old tooltip styles */
-.metric-primary,
-.metric-label,
-.metric-tooltip {
-    display: none;
 }
 
 .tooltip-row {
@@ -410,6 +434,14 @@ $$
     width: 100%;
     border-radius: 6px;
     border: 1px solid #333;
+    cursor: pointer; 
+    transition: all 0.3s ease;
+}
+
+.reference-image:hover {
+    border-color: #555;
+    transform: scale(1.02);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
 }
 
 .winner-badge {
@@ -433,34 +465,7 @@ $$
 .scene-data.active {
     display: contents;
 }
-
-@media (max-width: 1200px) {
-    .matrix-grid {
-        grid-template-columns: 150px repeat(2, 1fr) 100px 100px;
-        gap: 0.75rem;
-    }
-    
-    .technique-label {
-        font-size: 0.8rem;
-        padding: 0.5rem;
-    }
-    
-    .metric-cell {
-        font-size: 0.75rem;
-        padding: 0.4rem;
-    }
-    
-    .metric-primary {
-        font-size: 0.9rem;
-    }
-}
 </style>
-
-<!-- Add this modal div right after the closing </div> of comparison-section -->
-<div class="image-fullscreen-modal" id="imageModal">
-    <button class="image-fullscreen-close" onclick="closeImageModal()">×</button>
-    <img id="modalImage" src="" alt="Fullscreen view">
-</div>
 
 <div class="comparison-section">
     <div class="scene-selector">
@@ -2054,28 +2059,13 @@ $$
     </div>
 </div>
 
-<script>
-function switchScene(sceneName) {
-    document.querySelectorAll('.scene-button').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    event.target.classList.add('active');
-    
-    document.querySelectorAll('.scene-data').forEach(data => {
-        data.classList.remove('active');
-    });
-    
-    document.getElementById(sceneName + '-data').classList.add('active');
-}
-</script>
-
 <h2>Analysis</h2>
 
 <h3>Veach MIS Scene</h3>
 
 <p><strong>Winner: BSDF + Light</strong> (FLIP Mean: 0.168)</p>
 
-<p>The Veach scene validates our MIS implementation and shows the benefit of light sampling for small, bright emitters. BSDF-only sampling struggles with grazing angles and produces fireflies near the light sources. Adding light sampling (NEE) dramatically reduces variance with only a 2.9× time cost.</p>
+<p>The Veach scene validates our MIS implementation and shows the benefit of light sampling for small, bright emitters. BSDF-only sampling struggles with grazing angles and produces fireflies near the light sources. Adding light sampling (Next Event Estimation) dramatically reduces variance with only a 2.9× time cost.</p>
 
 <p>Environment sampling provides no benefit here since the scene has no environment lighting, resulting in identical FLIP scores to BSDF-only but wasting cycles. Split-lobe techniques show marginal quality improvements but don't justify their cost in this synthetic test case.</p>
 
@@ -2215,12 +2205,19 @@ function switchScene(sceneName) {
 
 <h1>References</h1>
 
+<h1>References</h1>
+
+<h1>References</h1>
+
 <ul>
-<li>Veach & Guibas (1995) - "Optimally Combining Sampling Techniques for Monte Carlo Rendering"</li>
-<li>Walter et al. (2007) - "Microfacet Models for Refraction through Rough Surfaces"</li>
-<li>Andersson et al. (2020) - "FLIP: A Difference Evaluator for Alternating Images"</li>
-<li>https://github.com/NVIDIA-RTX/RTXPT</li>
+<li><a href="https://cseweb.ucsd.edu/~viscomp/classes/cse168/sp21/readings/veach.pdf">Veach, E. & Guibas, L. (1995) - "Optimally Combining Sampling Techniques for Monte Carlo Rendering" - SIGGRAPH '95</a></li>
+<li><a href="https://graphics.stanford.edu/papers/veach_thesis/thesis-bw.pdf">Veach, E. (1997) - "Robust Monte Carlo Methods for Light Transport Simulation" - PhD Thesis, Stanford University</a></li>
+<li><a href="https://dl.acm.org/doi/10.1145/1073204.1073328">Clarberg, P., Jarosz, W., Akenine-Möller, T., & Jensen, H. W. (2005) - "Wavelet Importance Sampling: Efficiently Evaluating Products of Complex Functions" - SIGGRAM '05</a></li>
+<li><a href="https://cw.fel.cvut.cz/b221/_media/courses/b4m39rso/lectures/physically_based_rendering_third_edition.pdf">Pharr, M., Jakob, W., & Humphreys, G. (2016) - "Physically Based Rendering: From Theory to Implementation" - Chapter 13: Monte Carlo Integration (MIS coverage)</a></li>
+<li><a href="https://research.nvidia.com/sites/default/files/node/3260/FLIP_Paper.pdf">Andersson, P. et al. (2020) - "FLIP: A Difference Evaluator for Alternating Images" - HPG '20</a></li>
+<li>https://github.com/NVIDIA-RTX/RTXPT - NVIDIA RTX Path Tracer (Reference implementation)</li>
 </ul>
+
 
 <script>
 function switchScene(sceneName) {
@@ -2235,7 +2232,14 @@ function switchScene(sceneName) {
     
     document.getElementById(sceneName + '-data').classList.add('active');
 }
+</script>
 
+<div class="image-fullscreen-modal" id="imageModal">
+    <button class="image-fullscreen-close" onclick="closeImageModal()">×</button>
+    <img id="modalImage" src="" alt="Fullscreen view">
+</div>
+
+<script>
 // Fullscreen image functionality
 function openImageModal(imgSrc) {
     const modal = document.getElementById('imageModal');
@@ -2252,7 +2256,9 @@ function closeImageModal() {
 }
 
 // Add click handlers to all images in image-cells
+// Add click handlers to all images in image-cells AND reference images
 document.addEventListener('DOMContentLoaded', function() {
+    // Handle matrix images
     document.querySelectorAll('.image-cell img').forEach(img => {
         img.addEventListener('click', function(e) {
             e.stopPropagation();
@@ -2260,12 +2266,23 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Close modal when clicking backdrop
-    document.getElementById('imageModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeImageModal();
-        }
+    // Handle reference images
+    document.querySelectorAll('.reference-image').forEach(img => {
+        img.addEventListener('click', function(e) {
+            e.stopPropagation();
+            openImageModal(this.src);
+        });
     });
+    
+    // Close modal when clicking backdrop
+    const modal = document.getElementById('imageModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this || e.target === document.getElementById('modalImage')) {
+                closeImageModal();
+            }
+        });
+    }
     
     // Close modal on ESC key
     document.addEventListener('keydown', function(e) {
@@ -2274,6 +2291,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
-</script>`,
+</script>
+`,
     tags: ['Graphics', 'MIS']
 };
