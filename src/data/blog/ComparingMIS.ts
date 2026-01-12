@@ -25,7 +25,11 @@ export default {
 <p>MIS combines multiple sampling strategies with optimal weights that minimize variance. Two main heuristics exist:</p>
 
 <h3>Balance Heuristic</h3>
-<p>$$w_1(x) = \\frac{n_1 \\cdot p_1(x)}{n_1 \\cdot p_1(x) + n_2 \\cdot p_2(x)}$$</p>
+<p>
+$$
+w_1(x) = \\frac{n_1 \\cdot p_1(x)}{n_1 \\cdot p_1(x) + n_2 \\cdot p_2(x)}
+$$
+</p>
 <p>Weights each sample by its relative "reliability", strategies that would have sampled this direction with high probability get more credit.</p>
 <p><strong>Why use it:</strong> Provably optimal in minimizing variance. Safe default choice with solid theoretical guarantees.</p>
 
@@ -262,7 +266,6 @@ export default {
     height: 100vh;
     background: rgba(0, 0, 0, 0.95);
     z-index: 9999;
-    cursor: zoom-out;
     opacity: 0;
     transition: opacity 0.3s ease;
 }

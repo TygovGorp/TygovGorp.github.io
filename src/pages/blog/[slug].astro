@@ -101,6 +101,9 @@ const processedContent = containsHTML ? post.content : parseContent(post.content
 ---
 
 <BaseLayout title={`${post.title} - Your Name`}>
+  <!-- KaTeX CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+  
   <article class="blog-post">
     <header class="post-header">
       <a href="/blog" class="back-link">← Back to Blog</a>
@@ -115,6 +118,21 @@ const processedContent = containsHTML ? post.content : parseContent(post.content
     
     <div class="post-content" set:html={processedContent} />
   </article>
+
+  <!-- KaTeX JS - add at the end, before closing </BaseLayout> -->
+  <script is:inline src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+  <script is:inline src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+  <script is:inline>
+    document.addEventListener("DOMContentLoaded", function() {
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left: '$$', right: '$$', display: true},
+          {left: '$', right: '$', display: false}
+        ],
+        throwOnError: false
+      });
+    });
+  </script>
 </BaseLayout>
 
 <style>
@@ -240,14 +258,17 @@ const processedContent = containsHTML ? post.content : parseContent(post.content
     margin: 0.2em 0;
   }
 
-  .post-content :global(img) {
-    display: block;
-    max-width: 100%;
-    height: auto;
-    border-radius: 8px;
-    border: 1px solid #222;
-    margin: 2rem auto;
-    background: #1a1a1a;
+
+
+  /* LaTeX/KaTeX styling */
+  .post-content :global(.katex) {
+    font-size: 1.1em;
+  }
+  
+  .post-content :global(.katex-display) {
+    margin: 2rem 0;
+    overflow-x: auto;
+    overflow-y: hidden;
   }
 
   @media (max-width: 768px) {
@@ -265,6 +286,10 @@ const processedContent = containsHTML ? post.content : parseContent(post.content
 
     .post-content :global(h2) {
       font-size: 1.5rem;
+    }
+
+    .post-content :global(.katex) {
+      font-size: 1em;
     }
   }
 </style>
