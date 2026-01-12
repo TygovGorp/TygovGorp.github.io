@@ -18,17 +18,22 @@ export default {
 
 <p>Consider rendering a scene with a small, bright light source. BSDF sampling (shooting rays based on material properties) will rarely hit the light by chance, producing mostly black samples with occasional extreme values (fireflies). Light sampling (shooting rays directly at lights) solves this but fails for glossy reflections where the BSDF is highly directional.</p>
 
-<p>Neither strategy alone handles both cases efficiently.</p>
+<p>Neither strategy alone handles both cases efficiently. </p>
 
 <h2>The MIS Solution</h2>
 
-<p>MIS combines multiple sampling strategies with optimal weights that minimize variance. Given two PDFs p₁(x) and p₂(x), the balance heuristic computes:</p>
+<p>MIS combines multiple sampling strategies with optimal weights that minimize variance. Two main heuristics exist:</p>
 
-<p><strong>w₁(x) = (n₁ · p₁(x)) / (n₁ · p₁(x) + n₂ · p₂(x))</strong></p>
+<h3>Balance Heuristic</h3>
+<p>$$w_1(x) = \\frac{n_1 \\cdot p_1(x)}{n_1 \\cdot p_1(x) + n_2 \\cdot p_2(x)}$$</p>
+<p>Weights each sample by its relative "reliability", strategies that would have sampled this direction with high probability get more credit.</p>
+<p><strong>Why use it:</strong> Provably optimal in minimizing variance. Safe default choice with solid theoretical guarantees.</p>
 
-<p>This weights each sample by its relative "reliability" this makes it so strategies that would have sampled this direction with high probability get more credit. The power heuristic (β=2) often performs slightly better in practice.</p>
-
-<p>The crucial insight: MIS automatically adapts to scene conditions. When BSDF sampling works well, it gets high weight. When light sampling is better, it dominates. Neither strategy can "break" the estimate.</p>
+<h3>Power Heuristic (β=2)</h3>
+<p>$$w_1(x) = \\frac{(n_1 \\cdot p_1(x))^2}{(n_1 \\cdot p_1(x))^2 + (n_2 \\cdot p_2(x))^2}$$</p>
+<p>Raises PDFs to power β before computing weights, which more aggressively suppresses poorly-performing techniques.</p>
+<p><strong>Why use it:</strong> Often reduces variance 5-20% vs balance in practice by penalizing weak samples harder. Industry standard (used in PBRT, Mitsuba, most production renderers). Minimal downside, rarely performs worse than balance.</p>
+<p><strong>The crucial insight:</strong> Both heuristics automatically adapt to scene conditions. When BSDF sampling works well, it gets high weight. When light sampling is better, it dominates. Neither strategy can "break" the estimate.</p>
 
 <h1>Sampling Techniques Tested</h1>
 
@@ -99,11 +104,11 @@ export default {
 
 <h2>MIS Weighting</h2>
 
-<p>All tests use the balance heuristic for combining techniques. When combining 3+ strategies (BSDF + Light + Env), each sample is weighted by:</p>
+<p>All tests use the power heuristic (β=2) for combining techniques. When combining 3+ strategies (BSDF + Light + Env), each sample is weighted by:</p>
 
-<p><strong>w_i(x) = (n_i · p_i(x)) / Σⱼ(n_j · p_j(x))</strong></p>
+<p>$$w_i(x) = \\frac{(n_i \\cdot p_i(x))^2}{\\sum_j (n_j \\cdot p_j(x))^2}$$</p>
 
-<p>Where i ranges over all active sampling techniques for that path vertex.</p>
+<p>Where $i$ ranges over all active sampling techniques for that path vertex.</p>
 
 <h1>Strategy Combinations Tested</h1>
 
@@ -242,11 +247,67 @@ export default {
 }
 
 .image-cell img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  margin: 0 !important;
 }
+
+.image-fullscreen-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+    cursor: zoom-out;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.image-fullscreen-modal.active {
+    display: flex;
+    opacity: 1;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+}
+
+.image-fullscreen-modal img {
+    max-width: 95%;
+    max-height: 95%;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+}
+
+.image-fullscreen-close {
+    position: fixed;
+    top: 1rem;      
+    right: 1rem;    
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    color: #fff;
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;  /* Added to ensure it's above the image */
+}
+
+.image-fullscreen-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
 
 ..metric-cell {
     display: flex;
@@ -391,6 +452,12 @@ export default {
     }
 }
 </style>
+
+<!-- Add this modal div right after the closing </div> of comparison-section -->
+<div class="image-fullscreen-modal" id="imageModal">
+    <button class="image-fullscreen-close" onclick="closeImageModal()">×</button>
+    <img id="modalImage" src="" alt="Fullscreen view">
+</div>
 
 <div class="comparison-section">
     <div class="scene-selector">
@@ -2124,7 +2191,6 @@ function switchScene(sceneName) {
 <li>Equal-cost comparisons: All tests use equal SPP (samples per pixel), not equal computational budget. This shows technique quality but not practical efficiency.</li>
 <li>Volumetric scattering (where equiangular sampling matters)</li>
 <li>Caustics (where light tracing/photon mapping excel)</li>
-<li>Manifold exploration for SDS paths</li>
 <li>Adaptive sampling strategies</li>
 <li>ReSTIR or other biased techniques</li>
 </ul>
@@ -2151,6 +2217,60 @@ function switchScene(sceneName) {
 <li>Walter et al. (2007) - "Microfacet Models for Refraction through Rough Surfaces"</li>
 <li>Andersson et al. (2020) - "FLIP: A Difference Evaluator for Alternating Images"</li>
 <li>https://github.com/NVIDIA-RTX/RTXPT</li>
-</ul>`,
+</ul>
+
+<script>
+function switchScene(sceneName) {
+    document.querySelectorAll('.scene-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    document.querySelectorAll('.scene-data').forEach(data => {
+        data.classList.remove('active');
+    });
+    
+    document.getElementById(sceneName + '-data').classList.add('active');
+}
+
+// Fullscreen image functionality
+function openImageModal(imgSrc) {
+    const modal = document.getElementById('imageModal');
+    const modalImg = document.getElementById('modalImage');
+    modalImg.src = imgSrc;
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeImageModal() {
+    const modal = document.getElementById('imageModal');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+// Add click handlers to all images in image-cells
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.image-cell img').forEach(img => {
+        img.addEventListener('click', function(e) {
+            e.stopPropagation();
+            openImageModal(this.src);
+        });
+    });
+    
+    // Close modal when clicking backdrop
+    document.getElementById('imageModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeImageModal();
+        }
+    });
+    
+    // Close modal on ESC key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeImageModal();
+        }
+    });
+});
+</script>`,
     tags: ['Graphics', 'MIS']
 };

@@ -119,7 +119,7 @@ const processedContent = containsHTML ? post.content : parseContent(post.content
 
 <style>
   .blog-post {
-    max-width: 1400px; /* INCREASE from 800px to accommodate the matrix */
+    max-width: 1400px;
     margin: 0 auto;
     padding: 8rem 2rem 4rem;
   }
@@ -173,6 +173,20 @@ const processedContent = containsHTML ? post.content : parseContent(post.content
   .post-content {
     color: #bbb;
     line-height: 1.8;
+  }
+
+  /* Links in post content */
+  .post-content :global(a:link),
+  .post-content :global(a:visited) {
+    color: #5ca3ff;
+    text-decoration: none;
+    border-bottom: 1px solid #5ca3ff;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .post-content :global(a:hover) {
+    color: #7db8ff;
+    border-color: #7db8ff;
   }
 
   .post-content :global(h1) {
