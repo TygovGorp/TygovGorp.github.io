@@ -2204,11 +2204,6 @@ a:hover {
 <p>The goal isn't maximum technique count but rather <strong>intelligent technique selection based on scene characteristics</strong>. More sampling strategies ≠ better, especially at low sample counts where overhead dominates. An essential part of MIS is understanding which techniques to apply and which to skip.</p>
 
 <h1>References</h1>
-
-<h1>References</h1>
-
-<h1>References</h1>
-
 <ul>
 <li><a href="https://cseweb.ucsd.edu/~viscomp/classes/cse168/sp21/readings/veach.pdf">Veach, E. & Guibas, L. (1995) - "Optimally Combining Sampling Techniques for Monte Carlo Rendering" - SIGGRAPH '95</a></li>
 <li><a href="https://graphics.stanford.edu/papers/veach_thesis/thesis-bw.pdf">Veach, E. (1997) - "Robust Monte Carlo Methods for Light Transport Simulation" - PhD Thesis, Stanford University</a></li>
