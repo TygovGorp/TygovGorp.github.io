@@ -34,7 +34,7 @@ export default {
 
 <h2>Core Strategies</h2>
 
-<p><strong>BSDF Sampling</strong>: Sample directions based on material BRDF/BTDF. Works well for glossy reflections and diffuse surfaces, poor for small/distant light sources.</p>
+<p><strong>BSDF Sampling</strong>: Sample directions based on material BRDF/BTDF. Works well for glossy reflections and diffuse surfaces, but poorly for small/distant light sources.</p>
 
 <p><strong>Light Sampling (Next Event Estimation)</strong>: Explicitly sample light sources each bounce. Excels with small emitters, struggles with large area lights or environment lighting.</p>
 
@@ -88,32 +88,14 @@ export default {
 
 <h2>Evaluation Metrics</h2>
 
-<p><strong>Render Time</strong>: Wall-clock time to render at target sample counts (1, 4, 16, 64, 256 SPP)</p>
+<p><strong>Render Time</strong>: Wall-clock time to render</p>
 
-<p><strong>FLIP Error</strong>: Perceptual image difference vs reference (10000 SPP ground truth)</p>
+<p><strong>FLIP Error</strong>: Perceptual image difference vs reference (4096 SPP ground truth rendered in <a href="https://github.com/NVIDIA-RTX/RTXPT">RTXPT</a>)</p>
 <ul>
 <li>Lower is better</li>
 <li>Captures visible artifacts better than MSE/RMSE</li>
 <li>Curves show convergence rate</li>
 </ul>
-
-<h2>Sample Budget Allocation</h2>
-
-<p>A critical question: when using split-lobe sampling (2 techniques instead of 1), how do we allocate samples?</p>
-
-<p><strong>Equal SPP</strong>: Each lobe gets N samples (2N total vs N for unified)</p>
-<ul>
-<li>Shows quality ceiling (what if performance doesn't matter?)</li>
-<li>Fair comparison of variance reduction</li>
-</ul>
-
-<p><strong>Equal Cost</strong>: Split N samples across both lobes (N/2 each)</p>
-<ul>
-<li>Same computational cost as unified BSDF</li>
-<li>Shows practical value at fixed budget</li>
-</ul>
-
-<p>Both tests are necessary: Equal SPP shows if the technique fundamentally helps, Equal Cost shows if it's worth using.</p>
 
 <h2>MIS Weighting</h2>
 
@@ -147,9 +129,6 @@ export default {
 <li><strong>Split + Light + Env</strong>: All techniques combined (4 strategies)</li>
 </ul>
 
-<h2>Split-Lobe Variants (Equal Cost)</h2>
-<p>(Same combinations but at matched computational cost)</p>
-
 <h1>Predictions</h1>
 
 <p>Before analyzing results, here are my hypotheses:</p>
@@ -157,8 +136,7 @@ export default {
 <p>1: BSDF + Light will dominate Veach and Bistro Interior (small emitters)<br>
 2: Environment sampling will show large gains in Sponza and Bistro Exterior, minimal elsewhere<br>
 3: Split-lobe will reduce variance for rough metals in Bistro scenes but add overhead in Veach<br>
-4: At low SPP (1-4), simpler strategies will outperform due to per-sample overhead<br>
-5: Equal-cost split-lobe will rarely justify its complexity vs unified BSDF</p>
+4: Equal-cost split-lobe will rarely justify its complexity vs unified BSDF</p>
 
 <h1>Results and Analysis</h1>
 
@@ -2029,7 +2007,7 @@ function switchScene(sceneName) {
 
 <p>The Veach scene validates our MIS implementation and shows the benefit of light sampling for small, bright emitters. BSDF-only sampling struggles with grazing angles and produces fireflies near the light sources. Adding light sampling (NEE) dramatically reduces variance with only a 2.9× time cost.</p>
 
-<p>Environment sampling provides no benefit here—the scene has no environment lighting, resulting in identical FLIP scores to BSDF-only but wasting cycles. Split-lobe techniques show marginal quality improvements but don't justify their cost in this synthetic test case.</p>
+<p>Environment sampling provides no benefit here since the scene has no environment lighting, resulting in identical FLIP scores to BSDF-only but wasting cycles. Split-lobe techniques show marginal quality improvements but don't justify their cost in this synthetic test case.</p>
 
 <p><strong>Key insight</strong>: When small lights dominate, light sampling is essential. Environment sampling overhead is pure waste without skylight contribution.</p>
 
@@ -2037,9 +2015,9 @@ function switchScene(sceneName) {
 
 <p><strong>Winner: Split + Light + Env</strong> (FLIP Mean: 0.492)</p>
 
-<p>Sponza's indirect lighting from the sky dome benefits strongly from environment sampling. BSDF + Env achieves a 0.592 FLIP mean—a 7.5% improvement over BSDF-only at 77% higher cost. Combining all techniques (BSDF + Light + Env) reaches 0.590, nearly matching Env-only with added light sampling benefits.</p>
+<p>Sponza's indirect lighting from the sky dome benefits strongly from environment sampling. BSDF + Env achieves a 0.592 FLIP mean which is a 7.5% improvement over BSDF-only at 77% higher cost. Combining all techniques (BSDF + Light + Env) reaches 0.590, nearly matching Env-only with added light sampling benefits.</p>
 
-<p>The split-lobe variant wins overall (0.492), reducing error by 16% versus unified sampling with all techniques. This suggests split-lobe sampling effectively separates diffuse and specular contributions when both matter—diffuse for indirect bounce, specular for direct sun reflections.</p>
+<p>The split-lobe variant wins overall (0.492), reducing error by 16% versus unified sampling with all techniques. This suggests split-lobe sampling effectively separates diffuse and specular contributions when both matter. Diffuse for indirect bounce, specular for direct sun reflections.</p>
 
 <p><strong>Key insight</strong>: Architectural interiors with dominant skylight benefit from environment sampling. Split-lobe helps when materials exhibit strong lobe separation.</p>
 
@@ -2047,7 +2025,7 @@ function switchScene(sceneName) {
 
 <p><strong>Winner: Split + Env</strong> (FLIP Mean: 0.430)</p>
 
-<p>The outdoor scene shows environment sampling's clear advantage—BSDF + Env achieves 0.466 (5.3% improvement) over BSDF-only. Light sampling provides minimal benefit since the sun is effectively an environment source at infinity.</p>
+<p>The outdoor scene shows environment sampling's clear advantage, BSDF + Env achieves 0.466 (5.3% improvement) over BSDF-only. Light sampling provides minimal benefit since the sun is effectively an environment source at infinity.</p>
 
 <p>Split-lobe techniques consistently outperform unified BSDF across all sampling combinations. Split + Env (0.430) beats BSDF + Light + Env (0.464), showing that splitting the BSDF provides more value than adding light sampling in this scenario.</p>
 
@@ -2059,7 +2037,7 @@ function switchScene(sceneName) {
 
 <p>Counter-intuitively, environment sampling slightly outperforms light sampling (0.269 vs 0.294) despite multiple small interior lights. The environment map captures indirect lighting that bounces through the scene, while light sampling only handles direct illumination.</p>
 
-<p>BSDF-only and BSDF + Light + Env tie at 0.267, but the latter costs 4.9% more time. This suggests diminishing returns—adding environment sampling to already-good light sampling provides minimal benefit.</p>
+<p>BSDF-only and BSDF + Light + Env tie at 0.267, but the latter costs 4.9% more time. This suggests diminishing returns so adding environment sampling to already-good light sampling provides minimal benefit.</p>
 
 <p>Split-lobe variants don't improve results here, indicating the materials lack strong lobe separation or the scene's lighting doesn't stress the distinction.</p>
 
@@ -2077,14 +2055,14 @@ function switchScene(sceneName) {
 <li>Bistro Interior: 0.7% improvement</li>
 </ul>
 
-<p>Light sampling is more specialized—critical for Veach (12% improvement) but marginal elsewhere.</p>
+<p>Light sampling is more specialized/critical for Veach (12% improvement) but marginal elsewhere.</p>
 
 <h3>When Does Split-Lobe Help?</h3>
 
 <p>Split-lobe sampling shows value in two scenarios:</p>
 <ul>
-<li><strong>Sponza</strong>: 16% improvement with all techniques—strong diffuse/specular separation matters for indirect + direct lighting</li>
-<li><strong>Bistro Exterior</strong>: Consistent 5-10% improvements—rough metals benefit from separated sampling</li>
+<li><strong>Sponza</strong>: 16% improvement with all techniques, strong diffuse/specular separation matters for indirect + direct lighting</li>
+<li><strong>Bistro Exterior</strong>: Consistent 5-10% improvements, rough metals benefit from separated sampling</li>
 </ul>
 
 <p>It provides no benefit in Veach (synthetic test) or Bistro Interior (materials lack lobe separation).</p>
@@ -2129,22 +2107,6 @@ function switchScene(sceneName) {
 <li>Skip if scene has no significant environment contribution</li>
 </ul>
 
-<p><strong>Is split-lobe worth it?</strong></p>
-
-<p>At <strong>equal SPP</strong> (our test scenario):</p>
-<ul>
-<li>Yes for materials with strong lobe separation (rough metals, coated surfaces)</li>
-<li>Yes when both diffuse and specular contributions matter significantly</li>
-<li>Expect 5-15% FLIP improvement in favorable conditions</li>
-<li>No benefit for synthetic test cases or materials lacking lobe separation</li>
-</ul>
-
-<p>At <strong>equal cost</strong> (not tested):</p>
-<ul>
-<li>Likely only justified for hero-asset rendering where every percent matters</li>
-<li>Production rendering should prefer unified BSDF + additional techniques</li>
-</ul>
-
 <p><strong>Sample budget allocation</strong>:</p>
 
 <p>For a fixed time budget:</p>
@@ -2152,13 +2114,14 @@ function switchScene(sceneName) {
 <li>Start with BSDF + Light (universal baseline)</li>
 <li>Add environment sampling if scene has visible skylight/environment</li>
 <li>Consider split-lobe only for materials known to have extreme lobe separation</li>
-<li>Never use all techniques blindly—scene-adaptive selection is critical</li>
+<li>Never use all techniques blindly, scene-adaptive selection is critical</li>
 </ol>
 
 <h1>Limitations</h1>
 
 <p>This comparison does not cover:</p>
 <ul>
+<li>Equal-cost comparisons: All tests use equal SPP (samples per pixel), not equal computational budget. This shows technique quality but not practical efficiency.</li>
 <li>Volumetric scattering (where equiangular sampling matters)</li>
 <li>Caustics (where light tracing/photon mapping excel)</li>
 <li>Manifold exploration for SDS paths</li>
@@ -2171,16 +2134,15 @@ function switchScene(sceneName) {
 <li>Unidirectional path tracing</li>
 <li>GPU rendering (overhead ratios differ on CPU)</li>
 <li>These four scene types</li>
-<li>Equal SPP testing (equal cost would show different tradeoffs)</li>
 </ul>
 
 <h1>Conclusion</h1>
 
-<p>The key finding: <strong>scene-adaptive technique selection beats using all techniques everywhere</strong>. Environment sampling adds 20-40% overhead—valuable for outdoor/skylit scenes, wasteful for Veach. Split-lobe sampling helps rough metals but provides no benefit in simpler material scenarios.</p>
+<p>The key finding: <strong>scene-adaptive technique selection beats using all techniques everywhere</strong>. Environment sampling adds 20-40% overhead it is valuable for outdoor/skylit scenes, but wasteful for Veach. Split-lobe sampling helps rough metals but provides no benefit in simpler material scenarios.</p>
 
-<p>For production rendering, start with BSDF + Light as your baseline. Add environment sampling when skylight is visible and significant. Reserve split-lobe sampling for materials where you've validated it provides measurable benefit—don't enable it globally hoping for improvement.</p>
+<p>For production rendering, start with BSDF + Light as your baseline. Add environment sampling when skylight is visible and significant. Reserve split-lobe sampling for materials where you've validated it provides measurable benefit, don't enable it globally hoping for improvement.</p>
 
-<p>The goal isn't maximum technique count but rather <strong>intelligent technique selection based on scene characteristics</strong>. More sampling strategies ≠ better, especially at low sample counts where overhead dominates. Understanding when each technique helps—and when it's waste—is the real value of MIS.</p>
+<p>The goal isn't maximum technique count but rather <strong>intelligent technique selection based on scene characteristics</strong>. More sampling strategies ≠ better, especially at low sample counts where overhead dominates. An essential part of MIS is understanding which techniques to apply and which to skip.</p>
 
 <h1>References</h1>
 
@@ -2188,6 +2150,7 @@ function switchScene(sceneName) {
 <li>Veach & Guibas (1995) - "Optimally Combining Sampling Techniques for Monte Carlo Rendering"</li>
 <li>Walter et al. (2007) - "Microfacet Models for Refraction through Rough Surfaces"</li>
 <li>Andersson et al. (2020) - "FLIP: A Difference Evaluator for Alternating Images"</li>
+<li>https://github.com/NVIDIA-RTX/RTXPT</li>
 </ul>`,
     tags: ['Graphics', 'MIS']
 };
