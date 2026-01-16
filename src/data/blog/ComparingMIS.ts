@@ -2210,7 +2210,7 @@ a:hover {
 <li><a href="https://dl.acm.org/doi/10.1145/1073204.1073328">Clarberg, P., Jarosz, W., Akenine-Möller, T., & Jensen, H. W. (2005) - "Wavelet Importance Sampling: Efficiently Evaluating Products of Complex Functions" - SIGGRAM '05</a></li>
 <li><a href="https://cw.fel.cvut.cz/b221/_media/courses/b4m39rso/lectures/physically_based_rendering_third_edition.pdf">Pharr, M., Jakob, W., & Humphreys, G. (2016) - "Physically Based Rendering: From Theory to Implementation" - Chapter 13: Monte Carlo Integration (MIS coverage)</a></li>
 <li><a href="https://research.nvidia.com/sites/default/files/node/3260/FLIP_Paper.pdf">Andersson, P. et al. (2020) - "FLIP: A Difference Evaluator for Alternating Images" - HPG '20</a></li>
-<li<a href=">https://github.com/NVIDIA-RTX/RTXPT">NVIDIA RTX Path Tracer (Reference implementation)</a></li>
+<li><a href="https://github.com/NVIDIA-RTX/RTXPT">NVIDIA RTX Path Tracer (Reference implementation)</a></li>
 </ul>
 
 
