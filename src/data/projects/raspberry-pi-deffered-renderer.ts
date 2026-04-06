@@ -1,7 +1,7 @@
 export default {
-  title: 'PBR Renderer',
-  image: '/projects/pbr-thumb.jpg',
-  description: 'Real-time physically-based renderer with image-based lighting and cascade shadow mapping.',
+  title: 'Raspberry Pi Deferred Renderer',
+  image: '/media/project/pi-deferred-renderer/pi-deferred-renderer-thumb.png',
+  description: 'A deferred rendering engine optimized for Raspberry Pi hardware, supporting dynamic lighting and SSAO.',
   tech: ['Cook-Torrance BRDF', 'IBL with split-sum approximation', 'Cascade shadow maps with PCF'],
   github: 'https://github.com/yourusername/pbr-renderer',
   

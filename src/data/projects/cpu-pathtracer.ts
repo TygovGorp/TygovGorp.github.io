@@ -1,14 +1,13 @@
 export default {
-  title: 'Volumetric Fog System',
-  image: '/projects/fog-thumb.jpg',
-  description: 'Raymarched volumetric fog with multiple scattering approximation for atmospheric effects.',
-  tech: ['Raymarching in screen space', 'Temporal filtering', 'Light scattering approximation'],
-  github: 'https://github.com/yourusername/volumetric-fog',
+  title: 'CPU Path Tracer',
+  image: '/projects/pathtracer-thumb.jpg',
+  description: 'A simple CPU-based path tracer implementing ray tracing algorithms.',
+  tech: ['Ray tracing', 'Monte Carlo integration', 'Material shading'],
+  github: 'https://github.com/yourusername/cpu-pathtracer',
   
   fullDescription: `
-    Screen-space volumetric fog system with physically-based light scattering.
-    Uses raymarching with temporal reprojection for performance optimization.
-    Supports multiple light sources with colored fog and dynamic density.
+    A simple CPU-based path tracer implementing ray tracing algorithms.
+    Supports various materials and lighting models for realistic rendering.
   `,
   features: [
     'Screen-space raymarching for efficiency',
