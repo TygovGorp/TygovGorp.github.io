@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 300" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8a8a8a"/>
+    </marker>
+    <style>
+      .bx  { fill:#141414; stroke:#3a3a3a; stroke-width:1.2; }
+      .bxk { fill:#10161f; stroke:#5ca3ff; stroke-width:1.4; }
+      .t   { fill:#ededed; font-size:15px; }
+      .s   { fill:#9a9a9a; font-size:12px; }
+      .ln  { stroke:#8a8a8a; stroke-width:1.5; fill:none; }
+      .it  { font-style:italic; }
+    </style>
+  </defs>
+  <rect width="760" height="300" fill="#0a0a0a"/>
+
+  <!-- input -->
+  <text class="t it" x="18" y="105">x</text><text class="t" x="28" y="105">[n]</text>
+  <path class="ln" d="M58,100 L96,100" marker-end="url(#a)"/>
+
+  <!-- adder -->
+  <circle cx="112" cy="100" r="15" fill="#141414" stroke="#8a8a8a" stroke-width="1.4"/>
+  <path d="M104,100 L120,100 M112,92 L112,108" stroke="#d0d0d0" stroke-width="1.6"/>
+  <path class="ln" d="M127,100 L158,100" marker-end="url(#a)"/>
+
+  <!-- stacked delay lines (suggesting 16 of them) -->
+  <rect class="bx" x="174" y="62" width="130" height="50" rx="6" opacity="0.45"/>
+  <rect class="bx" x="168" y="68" width="130" height="50" rx="6" opacity="0.7"/>
+  <rect class="bx" x="162" y="75" width="130" height="50" rx="6"/>
+  <text class="t it" x="192" y="106">z</text>
+  <text class="t" x="202" y="98" font-size="11.5px">−M</text>
+  <text class="t it" x="222" y="101" font-size="9px">i</text>
+  <text class="s" x="162" y="146">delay line <tspan class="it">i</tspan> of 16</text>
+  <text class="s" x="162" y="162">(19–78 ms, prime lengths)</text>
+  <path class="ln" d="M292,100 L326,100" marker-end="url(#a)"/>
+
+  <!-- decay gain / damping -->
+  <rect class="bxk" x="330" y="75" width="132" height="50" rx="6"/>
+  <text class="t it" x="346" y="106">g</text><text class="t it" x="355" y="110" font-size="10px">i</text>
+  <text class="t" x="363" y="106">· damping</text>
+  <text class="s" x="330" y="146">loses exactly 60 dB</text>
+  <text class="s" x="330" y="162">per RT60, per band</text>
+  <path class="ln" d="M462,100 L546,100" marker-end="url(#a)"/>
+
+  <!-- tap node -->
+  <circle cx="500" cy="100" r="4" fill="#d0d0d0"/>
+
+  <!-- output sum -->
+  <rect class="bx" x="550" y="75" width="110" height="50" rx="6"/>
+  <text class="t" x="566" y="106">sum ÷ √16</text>
+  <path class="ln" d="M660,100 L692,100" marker-end="url(#a)"/>
+  <text class="t it" x="698" y="105">y</text><text class="t" x="708" y="105">[n]</text>
+
+  <!-- feedback through the matrix -->
+  <path class="ln" d="M500,104 L500,236 L462,236" marker-end="url(#a)"/>
+  <rect class="bx" x="200" y="208" width="258" height="56" rx="6"/>
+  <text class="t" x="218" y="233">Feedback matrix <tspan class="it">A</tspan></text>
+  <text class="s" x="218" y="252">mixes all 16 lines, orthogonal (Hadamard)</text>
+  <path class="ln" d="M200,236 L112,236 L112,119" marker-end="url(#a)"/>
+</svg>

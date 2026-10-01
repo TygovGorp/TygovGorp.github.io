@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9a9a9a"/>
+    </marker>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#5ca3ff"/>
+    </marker>
+    <marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#e8a33d"/>
+    </marker>
+    <pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="10" stroke="#2c2c2c" stroke-width="2"/>
+    </pattern>
+    <style>
+      .lab { fill:#bdbdbd; font-size:13.5px; }
+      .mut { fill:#8a8a8a; font-size:12.5px; }
+      .it  { font-style:italic; }
+    </style>
+  </defs>
+  <rect width="720" height="360" fill="#0a0a0a"/>
+
+  <!-- surface -->
+  <rect x="40" y="290" width="640" height="34" fill="url(#hatch)"/>
+  <line x1="40" y1="290" x2="680" y2="290" stroke="#7a7a7a" stroke-width="2"/>
+  <text class="mut" x="48" y="344">surface: absorbs α, transmits τ, reflects ρ = 1 − α − τ, scatters a fraction s</text>
+
+  <!-- Lambert lobe: a circle tangent to the surface at P; its radius along any direction is proportional to cos θ -->
+  <circle cx="290" cy="215" r="75" fill="#5ca3ff" fill-opacity="0.10" stroke="#5ca3ff" stroke-opacity="0.55" stroke-width="1.2"/>
+  <text x="128" y="238" fill="#7fb6ff" font-size="12.5px">Lambert lobe,</text>
+  <text x="128" y="254" fill="#7fb6ff" font-size="12.5px" class="it">cos θ / π</text>
+
+  <!-- incoming ray -->
+  <line x1="110" y1="92" x2="286" y2="286" stroke="#9a9a9a" stroke-width="1.6" marker-end="url(#a)"/>
+  <text class="lab" x="62" y="80">incoming ray, energy <tspan class="it">E</tspan><tspan font-size="10px" dy="4" class="it">b</tspan></text>
+
+  <!-- continuing ray -->
+  <line x1="292" y1="288" x2="455" y2="110" stroke="#9a9a9a" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#a)"/>
+  <text class="mut" x="468" y="100">ray continues: mirror</text>
+  <text class="mut" x="468" y="116">or diffuse, picked by <tspan class="it">s</tspan></text>
+
+  <!-- normal -->
+  <line x1="290" y1="290" x2="290" y2="118" stroke="#e8e8e8" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="298" y="128" fill="#e8e8e8" font-size="14px" font-weight="600" class="it">n</text>
+
+  <!-- shadow ray to listener -->
+  <line x1="290" y1="290" x2="584" y2="203" stroke="#e8a33d" stroke-width="1.8" stroke-dasharray="7 4" marker-end="url(#aa)"/>
+  <text x="470" y="262" fill="#e8a33d" font-size="13.5px">shadow ray, length <tspan class="it">R</tspan></text>
+  <text x="470" y="279" fill="#b08a4a" font-size="12.5px">visible? then deposit</text>
+
+  <!-- angle theta between normal and direction to listener -->
+  <path d="M290,240 A50,50 0 0,1 338,276" fill="none" stroke="#e8a33d" stroke-width="1.3"/>
+  <text x="316" y="236" fill="#e8a33d" font-size="14px" class="it">θ</text>
+
+  <!-- hit point -->
+  <circle cx="290" cy="290" r="4.5" fill="#ffffff"/>
+  <text class="lab" x="262" y="310">P</text>
+
+  <!-- listener sphere -->
+  <circle cx="612" cy="195" r="28" fill="#1a1a1a" stroke="#d0d0d0" stroke-width="1.5"/>
+  <circle cx="612" cy="195" r="2.5" fill="#d0d0d0"/>
+  <line x1="612" y1="195" x2="632" y2="175" stroke="#d0d0d0" stroke-width="1.1"/>
+  <text x="628" y="168" fill="#d0d0d0" font-size="13px" class="it">r</text>
+  <text class="lab" x="570" y="150">listener</text>
+</svg>
