@@ -1,22 +1,42 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 
-// Auto-load all project files from src/data/projects/
-const projectFiles = import.meta.glob('../data/projects/*.ts', { eager: true });
-// Sort by `order` in each project file: lower numbers show first.
-// Projects without an `order` go to the end, sorted by title.
-const projects = Object.values(projectFiles)
-  .map((mod: any) => mod.default)
-  .sort((a, b) =>
-    (a.order ?? Infinity) - (b.order ?? Infinity) || a.title.localeCompare(b.title)
-  );
+const cvUrl: string | null = null;
 
-// Auto-load recent blog posts (3 most recent)
+// Auto-load blog posts, newest first
 const blogFiles = import.meta.glob('../data/blog/*.ts', { eager: true });
 const allPosts = Object.values(blogFiles)
   .map((mod: any) => mod.default)
   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 const recentPosts = allPosts.slice(0, 3);
+const postsBySlug = new Map(allPosts.map((post) => [post.slug, post]));
+
+// Auto-load all project files from src/data/projects/
+const projectFiles = import.meta.glob('../data/projects/*.ts', { eager: true });
+const projects = Object.entries(projectFiles)
+  .map(([path, mod]: [string, any]) => {
+    const project = mod.default;
+    const id = path.split('/').pop()!.replace(/\.ts$/, '');
+
+    const blogPosts = (project.blogPosts ?? []).map((slug: string) => {
+      const post = postsBySlug.get(slug);
+      if (!post) {
+        throw new Error(`Project "${id}" links to blog post "${slug}", but no post in src/data/blog/ has that slug.`);
+      }
+      return { slug, title: post.title };
+    });
+
+    return { ...project, id, blogPosts };
+  })
+  .sort((a, b) =>
+    (a.order ?? Infinity) - (b.order ?? Infinity) || a.title.localeCompare(b.title)
+  );
+
+const allTags = [...new Set(projects.flatMap((p) => p.tech ?? []))].sort((a, b) => a.localeCompare(b));
+const tagHues: Record<string, number> = Object.fromEntries(
+  allTags.map((tag, i) => [tag, Math.round((25 + (i * 360) / allTags.length) % 360)])
+);
+
 ---
 
 <BaseLayout title="Tygo van Gorp - Graphics Programmer">
@@ -27,9 +47,14 @@ const recentPosts = allPosts.slice(0, 3);
       <h1>Tygo van Gorp</h1>
       <p class="subtitle">Graphics & Rendering Programmer</p>
       <p class="intro">
-        Specializing in shader development and real-time rendering techniques. 
-        Focused on performance optimization and modern rendering pipelines.
+        Graphics programmer with a passion for ray tracing, shaders, performance, team management and
+        <a href="/?project=catch-my-drift#projects" data-open-project="catch-my-drift">technical leadership</a>.
       </p>
+      <div class="hero-actions">
+        <a href="#projects" class="button button-primary">View projects</a>
+        {cvUrl && <a href={cvUrl} class="button" target="_blank" rel="noopener">Download CV</a>}
+        <a href="mailto:Tygo.vanGorp@outlook.com" class="button">Get in touch</a>
+      </div>
     </div>
     <a href="#projects" class="scroll-indicator">
       <span>Scroll</span>
@@ -53,26 +78,31 @@ const recentPosts = allPosts.slice(0, 3);
       </div>
       <div class="projects-list">
         {projects.map((project, index) => (
-          <article class="project" data-project-index={index} data-tags={JSON.stringify(project.tech ?? [])}>
+          <article class="project" data-project-index={index} data-project-id={project.id} data-tags={JSON.stringify(project.tech ?? [])}>
             <div class="project-media">
               {project.image
                 ? <img src={project.image} alt={project.title} loading="lazy" />
-                : <div class="placeholder">Add project video/image (16:9)</div>
+                : <div class="placeholder" aria-hidden="true"></div>
               }
             </div>
 
             <div class="project-header">
               <h3>{project.title}</h3>
-              {project.github && (
-                <a href={project.github} target="_blank" rel="noopener" class="github-link">GitHub →</a>
-              )}
+              <div class="project-links">
+                {project.blogPosts.length > 0 && (
+                  <a href={`/blog/${project.blogPosts[0].slug}`} class="github-link">Write-up →</a>
+                )}
+                {project.github && (
+                  <a href={project.github} target="_blank" rel="noopener" class="github-link">GitHub →</a>
+                )}
+              </div>
             </div>
 
             <p class="project-description">{project.description}</p>
 
             <div class="tech-list">
               {(project.tech ?? []).map(item => (
-                <button type="button" class="tech-tag" data-tag={item} aria-pressed="false">{item}</button>
+                <button type="button" class="tech-tag" data-tag={item} aria-pressed="false" style={`--tag-hue: ${tagHues[item]}`}>{item}</button>
               ))}
             </div>
           </article>
@@ -117,15 +147,19 @@ const recentPosts = allPosts.slice(0, 3);
     <h2 class="section-title">About</h2>
     <div class="about-content">
       <div class="about-text">
-        <p>
-          [Add your background here - education, experience, what drives your interest in graphics programming]
-
+        <div class="education">
+          <h3>Education</h3>
             <table>
               <tbody>
                 <tr>
-                  <td>Breda University Of Applied Sciences</td>
+                  <td>Breda University of Applied Sciences</td>
                   <td>Creative Media & Game Technologies - Programming</td>
                   <td>Sep 2025 to Apr 2028</td>
+                </tr>
+                <tr>
+                  <td>Cambreur College</td>
+                  <td>Bilingual Havo</td>
+                  <td>Sep 2019 to Apr 2025</td>
                 </tr>
                 <tr>
                   <td>Cambridge</td>
@@ -134,32 +168,63 @@ const recentPosts = allPosts.slice(0, 3);
                 </tr>
               </tbody>
             </table>
-
+        </div>
+        <p>
+          My main focus is real-time rendering with a passion for ray/path tracing. I've built path tracers on the CPU
+          and in DX12, worked on PS5 rendering, and I write about what I learn on my blog.
         </p>
         <p>
-          [Current focus areas, what you're learning, what types of projects you're interested in]
+          Next to the technical work, I've found that I enjoy technical leadership. Being tech lead on
+          Catch My Drift taught me to plan work for a team, review code, and keep programming in line
+          with design and art. I want to keep growing in both, toward a lead programmer role.
         </p>
       </div>
       
       <div class="skills-contact">
         <div class="skills">
           <h3>Technical Skills</h3>
+          {/*
+            NOTE (feedback point 4): make these specific. Every graphics portfolio says
+            "real-time rendering" and "profiling"; naming the actual techniques and tools is
+            more convincing and matches the keywords recruiters search job applications for.
+            Only list things you've actually built or used. Ideas from your own projects:
+              - Instead of "Real-time rendering techniques": "Deferred shading", "PBR with
+                image-based lighting", "Shadow mapping", "Frustum culling"
+              - Instead of "Ray/Path Tracing": "Path tracing with Multiple Importance Sampling",
+                "Hardware ray tracing (DXR)" if your DX12 tracer uses it
+              - Instead of "Performance profiling & optimization": name the tools, e.g.
+                "Profiling with PIX / RenderDoc / Nsight / Razor (PS5)"
+              - "OpenGL / DirectX 12 / PS5" could include "OpenGL ES" (Raspberry Pi project)
+          */}
           <ul>
             <li>GLSL / HLSL shader programming</li>
-            <li>OpenGL / DirectX / PS5</li>
+            <li>OpenGL / DirectX 12 / PS5</li>
             <li>Real-time rendering techniques</li>
+            <li>Ray/Path Tracing</li>
             <li>Performance profiling & optimization</li>
             <li>C++</li>
           </ul>
         </div>
         
-        <div class="contact">
-          <h3>Contact</h3>
-          <p>
-            <a href="mailto:Tygo.vanGorp@outlook.com">Tygo.vanGorp@outlook.com</a><br>
-            <a href="https://github.com/TygovGorp" target="_blank">GitHub</a><br>
-            <a href="https://www.linkedin.com/in/tygo-van-gorp" target="_blank">LinkedIn</a>
-          </p>
+        <div class="side-column">
+          <div class="skills">
+            <h3>Technical Leadership</h3>
+            <ul>
+              <li>Sprint planning & task breakdown</li>
+              <li>Code review</li>
+              <li>Collaborating with non-technical team members</li>
+            </ul>
+          </div>
+
+          <div class="contact">
+            <h3>Contact</h3>
+            <p>
+              <a href="mailto:Tygo.vanGorp@outlook.com">Tygo.vanGorp@outlook.com</a><br>
+              <a href="https://github.com/TygovGorp" target="_blank">GitHub</a><br>
+              <a href="https://www.linkedin.com/in/tygo-van-gorp" target="_blank">LinkedIn</a>
+              {cvUrl && <><br><a href={cvUrl} target="_blank" rel="noopener">CV (PDF)</a></>}
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -182,10 +247,20 @@ const recentPosts = allPosts.slice(0, 3);
           <h3>Overview</h3>
           <p id="modal-full-description"></p>
         </div>
+
+        <div class="modal-section" id="modal-writeups-section" hidden>
+          <h3>Write-up</h3>
+          <ul id="modal-writeups" class="modal-list"></ul>
+        </div>
+
+        <div class="modal-section" id="modal-contributions-section" hidden>
+          <h3>My Contributions</h3>
+          <ul id="modal-contributions" class="modal-list"></ul>
+        </div>
         
         <div class="modal-section">
           <h3>Key Features</h3>
-          <ul id="modal-features"></ul>
+          <ul id="modal-features" class="modal-list"></ul>
         </div>
         
         <div class="modal-section">
@@ -193,7 +268,7 @@ const recentPosts = allPosts.slice(0, 3);
           <div id="modal-tech-tags" class="tech-list"></div>
         </div>
         
-        <div class="modal-section">
+        <div class="modal-section" id="modal-code-section" hidden>
           <h3>Code Sample</h3>
           <pre><code id="modal-code"></code></pre>
         </div>
@@ -201,7 +276,7 @@ const recentPosts = allPosts.slice(0, 3);
     </div>
   </div>
 
-  <script define:vars={{ projects }}>
+  <script define:vars={{ projects, tagHues }}>
     if (projects && projects.length > 0) {
       const modal = document.getElementById('project-modal');
       const cards = document.querySelectorAll('.project');
@@ -228,6 +303,7 @@ const recentPosts = allPosts.slice(0, 3);
 
         filterBar.hidden = activeTag === null;
         filterLabel.textContent = activeTag ?? '';
+        if (activeTag !== null) filterLabel.style.setProperty('--tag-hue', tagHues[activeTag]);
       }
 
       document.getElementById('filter-clear').addEventListener('click', () => setFilter(null));
@@ -245,9 +321,89 @@ const recentPosts = allPosts.slice(0, 3);
         });
       });
 
+      // ---------- Direct links to a project ----------
+      // /?project=<file name> opens that project's popup when the page loads
+      // (used by blog posts to link back). Links on this page with
+      // data-open-project open the popup without reloading.
+      const findProject = (id) => projects.find(p => p.id === id);
+
+      document.querySelectorAll('[data-open-project]').forEach(link => {
+        link.addEventListener('click', (e) => {
+          const project = findProject(link.dataset.openProject);
+          if (!project) return; // unknown id: let the link navigate normally
+          e.preventDefault();
+          openModal(project);
+        });
+      });
+
+      // ---------- Video ----------
+      // Turns a YouTube link (watch?v=, youtu.be/, /shorts/, /embed/, /live/) into its video id.
+      function getYouTubeId(url) {
+        try {
+          const u = new URL(url);
+          const host = u.hostname.replace(/^(www\.|m\.)/, '');
+          if (host === 'youtu.be') return u.pathname.split('/')[1] || null;
+          if (host === 'youtube.com' || host === 'youtube-nocookie.com') {
+            if (u.pathname === '/watch') return u.searchParams.get('v');
+            const m = u.pathname.match(/^\/(embed|shorts|live)\/([^/]+)/);
+            if (m) return m[2];
+          }
+        } catch (e) { /* not a valid URL */ }
+        return null;
+      }
+
+      // Reads a start time like t=90, t=90s or t=1m30s from the link, in seconds.
+      function getStartSeconds(url) {
+        try {
+          const t = new URL(url).searchParams.get('t') || new URL(url).searchParams.get('start');
+          if (!t) return 0;
+          if (/^\d+s?$/.test(t)) return parseInt(t, 10);
+          const m = t.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/);
+          return m ? (+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + (+m[3] || 0) : 0;
+        } catch (e) { return 0; }
+      }
+
+      // Returns the element to show in the popup for a project's videoUrl,
+      // or null when there is no video (or the link format isn't recognised).
+      function createVideoElement(project) {
+        const url = project.videoUrl;
+        if (!url) return null;
+
+        const ytId = getYouTubeId(url);
+        if (ytId) {
+          const start = getStartSeconds(url);
+          const iframe = document.createElement('iframe');
+          // youtube-nocookie: no tracking cookies until the visitor presses play
+          iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(ytId)}?rel=0${start ? `&start=${start}` : ''}`;
+          iframe.title = `${project.title} video`;
+          iframe.allow = 'accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+          iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+          iframe.allowFullscreen = true;
+          iframe.loading = 'lazy';
+          return iframe;
+        }
+
+        // A video file of your own, e.g. '/media/project/x/demo.mp4'
+        if (/\.(mp4|webm|ogg)(\?|#|$)/i.test(url)) {
+          const video = document.createElement('video');
+          video.src = url;
+          video.controls = true;
+          video.preload = 'metadata';
+          video.playsInline = true;
+          if (project.image) video.poster = project.image;
+          return video;
+        }
+
+        console.warn(`videoUrl for "${project.title}" isn't a YouTube link or .mp4/.webm/.ogg file, showing the image instead:`, url);
+        return null;
+      }
+
       // ---------- Modal ----------
       function openModal(project) {
         document.getElementById('modal-title').textContent = project.title;
+
+        // Put the project in the address bar so the open popup can be shared as a link
+        history.replaceState(null, '', `?project=${encodeURIComponent(project.id)}${location.hash}`);
 
         const gh = document.getElementById('modal-github');
         if (project.github) {
@@ -259,16 +415,44 @@ const recentPosts = allPosts.slice(0, 3);
 
         document.getElementById('modal-full-description').textContent = project.fullDescription || project.description;
 
+        // Write-up: links to related blog posts (blogPosts in the project file)
+        const writeups = project.blogPosts || [];
+        const writeupList = document.getElementById('modal-writeups');
+        writeupList.innerHTML = '';
+        writeups.forEach(post => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = `/blog/${post.slug}`;
+          a.textContent = `${post.title} →`;
+          li.appendChild(a);
+          writeupList.appendChild(li);
+        });
+        document.getElementById('modal-writeups-section').hidden = writeups.length === 0;
+
         const modalMedia = document.getElementById('modal-media');
         modalMedia.innerHTML = '';
-        if (project.image) {
+        const videoEl = createVideoElement(project);
+        if (videoEl) {
+          modalMedia.appendChild(videoEl);
+        } else if (project.image) {
           const img = document.createElement('img');
           img.src = project.image;
           img.alt = project.title;
           modalMedia.appendChild(img);
-        } else {
-          modalMedia.innerHTML = '<div class="placeholder">Project media</div>';
         }
+        // No video and no image: hide the media area instead of showing an empty box
+        modalMedia.hidden = modalMedia.childElementCount === 0;
+
+        // My contributions: only shown when the project file lists some
+        const contributions = project.contributions || [];
+        const contribList = document.getElementById('modal-contributions');
+        contribList.innerHTML = '';
+        contributions.forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = item;
+          contribList.appendChild(li);
+        });
+        document.getElementById('modal-contributions-section').hidden = contributions.length === 0;
 
         const featuresList = document.getElementById('modal-features');
         featuresList.innerHTML = '';
@@ -285,6 +469,7 @@ const recentPosts = allPosts.slice(0, 3);
           const btn = document.createElement('button');
           btn.type = 'button';
           btn.className = 'tech-tag';
+          btn.style.setProperty('--tag-hue', tagHues[tech]);
           btn.textContent = tech;
           btn.addEventListener('click', () => {
             closeModal();
@@ -294,15 +479,21 @@ const recentPosts = allPosts.slice(0, 3);
           techContainer.appendChild(btn);
         });
 
-        document.getElementById('modal-code').textContent = project.codeSnippet || '// No code sample available';
+        // Code sample: only shown when the project file has a codeSnippet
+        const code = (project.codeSnippet || '').trim();
+        document.getElementById('modal-code').textContent = code;
+        document.getElementById('modal-code-section').hidden = code === '';
 
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
       }
 
       function closeModal() {
+        // Remove the media so a playing video stops instead of continuing in the background
+        document.getElementById('modal-media').innerHTML = '';
         modal.classList.remove('active');
         document.body.style.overflow = '';
+        history.replaceState(null, '', `${location.pathname}${location.hash}`);
       }
 
       document.querySelector('.modal-close').addEventListener('click', closeModal);
@@ -310,6 +501,9 @@ const recentPosts = allPosts.slice(0, 3);
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
       });
+
+      const linkedProject = findProject(new URLSearchParams(location.search).get('project'));
+      if (linkedProject) openModal(linkedProject);
     }
   </script>
 </BaseLayout>
@@ -359,6 +553,57 @@ const recentPosts = allPosts.slice(0, 3);
     font-size: 1.1rem;
     line-height: 1.8;
     color: #bbb;
+  }
+
+  .intro a {
+    color: #fff;
+    text-decoration: none;
+    border-bottom: 1px solid #555;
+    transition: border-color 0.2s;
+  }
+
+  .intro a:hover {
+    border-color: #fff;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 2.5rem;
+  }
+
+  .button {
+    display: inline-block;
+    padding: 0.7rem 1.4rem;
+    border: 1px solid #444;
+    border-radius: 6px;
+    color: #fff;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: border-color 0.2s, background 0.2s, color 0.2s;
+  }
+
+  .button:hover {
+    border-color: #fff;
+  }
+
+  .button-primary {
+    background: #fff;
+    border-color: #fff;
+    color: #0a0a0a;
+  }
+
+  .button-primary:hover {
+    background: #ddd;
+    border-color: #ddd;
+  }
+
+  .button:focus-visible,
+  .intro a:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
   }
 
   .scroll-indicator {
@@ -445,6 +690,7 @@ const recentPosts = allPosts.slice(0, 3);
 
   .project-filter strong {
     color: #fff;
+    color: oklch(0.85 0.12 var(--tag-hue, 0));
     font-weight: 600;
   }
 
@@ -505,6 +751,12 @@ const recentPosts = allPosts.slice(0, 3);
     overflow-wrap: anywhere;
   }
 
+  .project-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+  }
+
   .github-link {
     flex-shrink: 0;
     color: #fff;
@@ -548,8 +800,6 @@ const recentPosts = allPosts.slice(0, 3);
     color: #555;
   }
 
-  /* Absolutely positioned so the image can't stretch the 16:9 slot;
-     inset 0 + margin auto centers it, max-width/height shrink it to fit. */
   .project-media img,
   .modal-media :global(img) {
     position: absolute;
@@ -572,6 +822,24 @@ const recentPosts = allPosts.slice(0, 3);
     border-radius: 8px;
   }
 
+  /* Videos fill the whole 16:9 area (YouTube adds its own letterboxing if needed) */
+  .modal-media :global(iframe),
+  .modal-media :global(video) {
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 1px solid #222;
+    border-radius: 8px;
+    background: #000;
+  }
+
+  .modal-media :global(video) {
+    object-fit: contain;
+  }
+
   .project-description {
     flex-grow: 1;
     margin: 0 0 1.25rem;
@@ -586,27 +854,34 @@ const recentPosts = allPosts.slice(0, 3);
   }
 
   .tech-list :global(.tech-tag) {
-    background: #1a1a1a;
     padding: 0.35rem 0.7rem;
     border-radius: 4px;
     font: inherit;
     font-size: 0.8rem;
     line-height: 1.4;
     text-align: left;
+    background: #1a1a1a;
+    background: oklch(0.27 0.045 var(--tag-hue, 0));
     color: #999;
+    color: oklch(0.84 0.09 var(--tag-hue, 0));
     border: 1px solid #222;
+    border-color: oklch(0.4 0.07 var(--tag-hue, 0));
     cursor: pointer;
     transition: color 0.2s, border-color 0.2s, background 0.2s;
   }
 
   .tech-list :global(.tech-tag:hover) {
     color: #fff;
+    color: oklch(0.94 0.05 var(--tag-hue, 0));
     border-color: #555;
+    border-color: oklch(0.62 0.12 var(--tag-hue, 0));
   }
 
   .tech-list :global(.tech-tag.active) {
     background: #fff;
+    background: oklch(0.84 0.11 var(--tag-hue, 0));
     border-color: #fff;
+    border-color: oklch(0.84 0.11 var(--tag-hue, 0));
     color: #0a0a0a;
   }
 
@@ -750,6 +1025,14 @@ const recentPosts = allPosts.slice(0, 3);
     margin-bottom: 3rem;
   }
 
+  .education {
+    margin-bottom: 2rem;
+  }
+
+  .side-column .skills {
+    margin-bottom: 2rem;
+  }
+
   .about-text p {
     margin-bottom: 1.5rem;
     line-height: 1.8;
@@ -882,8 +1165,20 @@ const recentPosts = allPosts.slice(0, 3);
     border-color: #fff;
   }
 
-  .modal-github-link[hidden] {
+  .modal-github-link[hidden],
+  .modal-media[hidden] {
     display: none;
+  }
+
+  .modal-list :global(a) {
+    color: #fff;
+    text-decoration: none;
+    border-bottom: 1px solid #555;
+    transition: border-color 0.2s;
+  }
+
+  .modal-list :global(a:hover) {
+    border-color: #fff;
   }
 
   .modal-media {
@@ -910,6 +1205,21 @@ const recentPosts = allPosts.slice(0, 3);
     list-style-position: inside;
     line-height: 2;
     color: #bbb;
+  }
+
+  .modal-section[hidden] {
+    display: none;
+  }
+
+  /* Bullets sit outside so wrapped lines align with the text, not under the bullet. */
+  .modal-section .modal-list {
+    list-style-position: outside;
+    padding-left: 1.25rem;
+    line-height: 1.7;
+  }
+
+  .modal-list li + li {
+    margin-top: 0.5rem;
   }
 
   .modal-section pre {

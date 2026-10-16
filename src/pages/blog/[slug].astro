@@ -19,6 +19,15 @@ export async function getStaticPaths() {
 // Get the post from props
 const { post } = Astro.props;
 
+// Projects that list this post in their blogPosts field, so the post can link back to them
+const projectFiles = import.meta.glob('../../data/projects/*.ts', { eager: true });
+const relatedProjects = Object.entries(projectFiles)
+  .map(([path, mod]: [string, any]) => ({
+    id: path.split('/').pop()!.replace(/\.ts$/, ''),
+    ...mod.default,
+  }))
+  .filter((project) => (project.blogPosts ?? []).includes(post.slug));
+
 // Check if content contains HTML tags (style, script, div with class)
 const containsHTML = /<style>|<script>|<div class=/.test(post.content);
 
@@ -100,7 +109,7 @@ function parseContent(content: string) {
 const processedContent = containsHTML ? post.content : parseContent(post.content);
 ---
 
-<BaseLayout title={`${post.title}`}>
+<BaseLayout title={`${post.title} - Tygo van Gorp`}>
   <!-- KaTeX CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
   
@@ -114,6 +123,13 @@ const processedContent = containsHTML ? post.content : parseContent(post.content
           <span class="tag">{tag}</span>
         ))}
       </div>
+      {relatedProjects.length > 0 && (
+        <p class="related-project">
+          Project: {relatedProjects.map((project, i) => (
+            <>{i > 0 && ', '}<a href={`/?project=${project.id}#projects`}>{project.title} →</a></>
+          ))}
+        </p>
+      )}
     </header>
     
     <div class="post-content" set:html={processedContent} />
@@ -293,5 +309,22 @@ const processedContent = containsHTML ? post.content : parseContent(post.content
     .post-content :global(.katex) {
       font-size: 1em;
     }
+  }
+
+  .related-project {
+    margin-top: 1rem;
+    color: #888;
+    font-size: 0.95rem;
+  }
+
+  .related-project a {
+    color: #fff;
+    text-decoration: none;
+    border-bottom: 1px solid #555;
+    transition: border-color 0.2s;
+  }
+
+  .related-project a:hover {
+    border-color: #fff;
   }
 </style>

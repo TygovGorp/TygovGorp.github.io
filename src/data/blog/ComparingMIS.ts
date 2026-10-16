@@ -2,7 +2,7 @@ export default {
     title: 'Comparing Multiple Importance Sampling Strategies',
     slug: 'comparing-mis-strategies',
     date: '2026-01-16',
-    excerpt: 'An comparison of MIS technique combinations in path tracing across various scenes, analyzing render time and perceptual error to determine practical recommendations.',
+    excerpt: 'A comparison of MIS technique combinations in path tracing across various scenes, analyzing render time and perceptual error to determine practical recommendations.',
     content: `
 <h1>Introduction</h1>
 
