@@ -3,7 +3,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 // Auto-load all project files from src/data/projects/
 const projectFiles = import.meta.glob('../data/projects/*.ts', { eager: true });
-const projects = Object.values(projectFiles).map((mod: any) => mod.default);
+// Sort by `order` in each project file: lower numbers show first.
+// Projects without an `order` go to the end, sorted by title.
+const projects = Object.values(projectFiles)
+  .map((mod: any) => mod.default)
+  .sort((a, b) =>
+    (a.order ?? Infinity) - (b.order ?? Infinity) || a.title.localeCompare(b.title)
+  );
 
 // Auto-load recent blog posts (3 most recent)
 const blogFiles = import.meta.glob('../data/blog/*.ts', { eager: true });
@@ -41,26 +47,32 @@ const recentPosts = allPosts.slice(0, 3);
         <p>No projects found. Add project files to <code>src/data/projects/</code></p>
       </div>
     ) : (
+      <div class="project-filter" id="project-filter" hidden>
+        <span>Showing projects tagged <strong id="filter-label"></strong></span>
+        <button type="button" class="filter-clear" id="filter-clear">Show all projects</button>
+      </div>
       <div class="projects-list">
         {projects.map((project, index) => (
-          <article class="project" data-project-index={index}>
-            <div class="project-header">
-              <h3>{project.title}</h3>
-              <a href={project.github} target="_blank" class="github-link" onclick="event.stopPropagation()">GitHub →</a>
-            </div>
-            
+          <article class="project" data-project-index={index} data-tags={JSON.stringify(project.tech ?? [])}>
             <div class="project-media">
               {project.image
-                ? <img src={project.image} alt={project.title} />
+                ? <img src={project.image} alt={project.title} loading="lazy" />
                 : <div class="placeholder">Add project video/image (16:9)</div>
               }
             </div>
-            
+
+            <div class="project-header">
+              <h3>{project.title}</h3>
+              {project.github && (
+                <a href={project.github} target="_blank" rel="noopener" class="github-link">GitHub →</a>
+              )}
+            </div>
+
             <p class="project-description">{project.description}</p>
-            
+
             <div class="tech-list">
-              {project.tech.map(item => (
-                <span class="tech-tag">{item}</span>
+              {(project.tech ?? []).map(item => (
+                <button type="button" class="tech-tag" data-tag={item} aria-pressed="false">{item}</button>
               ))}
             </div>
           </article>
@@ -191,76 +203,127 @@ const recentPosts = allPosts.slice(0, 3);
 
   <script define:vars={{ projects }}>
     if (projects && projects.length > 0) {
-      // Open modal
-      document.querySelectorAll('.project').forEach((card, index) => {
-        card.addEventListener('click', () => {
-          const project = projects[index];
-          const modal = document.getElementById('project-modal');
-          
-          // Populate modal
-          document.getElementById('modal-title').textContent = project.title;
-          document.getElementById('modal-github').href = project.github;
-          document.getElementById('modal-full-description').textContent = project.fullDescription || project.description;
-          
-          // Media (image or placeholder)
-          const modalMedia = document.getElementById('modal-media');
-          modalMedia.innerHTML = project.image
-            ? `<img src="${project.image}" alt="${project.title}" style="width:100%;height:100%;object-fit:cover;">`
-            : `<div class="placeholder">Project media</div>`;
-          
-          // Features
-          const featuresList = document.getElementById('modal-features');
-          featuresList.innerHTML = '';
-          if (project.features) {
-            project.features.forEach(feature => {
-              const li = document.createElement('li');
-              li.textContent = feature;
-              featuresList.appendChild(li);
-            });
+      const modal = document.getElementById('project-modal');
+      const cards = document.querySelectorAll('.project');
+      const filterBar = document.getElementById('project-filter');
+      const filterLabel = document.getElementById('filter-label');
+      let activeTag = null;
+
+      // ---------- Tag filtering ----------
+      // Clicking a tag shows only projects with that tag.
+      // Clicking the same tag again (or "Show all projects") clears the filter.
+      function setFilter(tag) {
+        activeTag = tag === activeTag ? null : tag;
+
+        cards.forEach(card => {
+          const tags = JSON.parse(card.dataset.tags || '[]');
+          card.hidden = activeTag !== null && !tags.includes(activeTag);
+        });
+
+        document.querySelectorAll('.project .tech-tag').forEach(btn => {
+          const on = btn.dataset.tag === activeTag;
+          btn.classList.toggle('active', on);
+          btn.setAttribute('aria-pressed', String(on));
+        });
+
+        filterBar.hidden = activeTag === null;
+        filterLabel.textContent = activeTag ?? '';
+      }
+
+      document.getElementById('filter-clear').addEventListener('click', () => setFilter(null));
+
+      // ---------- Card clicks: tags filter, GitHub opens, anything else opens the modal ----------
+      cards.forEach(card => {
+        card.addEventListener('click', (e) => {
+          const tagBtn = e.target.closest('.tech-tag');
+          if (tagBtn) {
+            setFilter(tagBtn.dataset.tag);
+            return;
           }
-          
-          // Tech tags
-          const techContainer = document.getElementById('modal-tech-tags');
-          techContainer.innerHTML = '';
-          project.tech.forEach(tech => {
-            const span = document.createElement('span');
-            span.className = 'tech-tag';
-            span.textContent = tech;
-            techContainer.appendChild(span);
-          });
-          
-          // Code
-          document.getElementById('modal-code').textContent = project.codeSnippet || '// No code sample available';
-          
-          // Show modal
-          modal.classList.add('active');
-          document.body.style.overflow = 'hidden';
+          if (e.target.closest('a')) return; // let links work normally
+          openModal(projects[Number(card.dataset.projectIndex)]);
         });
       });
-      
-      // Close modal
-      const modal = document.getElementById('project-modal');
-      const closeBtn = document.querySelector('.modal-close');
-      const backdrop = document.querySelector('.modal-backdrop');
-      
+
+      // ---------- Modal ----------
+      function openModal(project) {
+        document.getElementById('modal-title').textContent = project.title;
+
+        const gh = document.getElementById('modal-github');
+        if (project.github) {
+          gh.href = project.github;
+          gh.hidden = false;
+        } else {
+          gh.hidden = true;
+        }
+
+        document.getElementById('modal-full-description').textContent = project.fullDescription || project.description;
+
+        const modalMedia = document.getElementById('modal-media');
+        modalMedia.innerHTML = '';
+        if (project.image) {
+          const img = document.createElement('img');
+          img.src = project.image;
+          img.alt = project.title;
+          modalMedia.appendChild(img);
+        } else {
+          modalMedia.innerHTML = '<div class="placeholder">Project media</div>';
+        }
+
+        const featuresList = document.getElementById('modal-features');
+        featuresList.innerHTML = '';
+        (project.features || []).forEach(feature => {
+          const li = document.createElement('li');
+          li.textContent = feature;
+          featuresList.appendChild(li);
+        });
+
+        // Tags in the modal also filter: close the modal and jump to the filtered list
+        const techContainer = document.getElementById('modal-tech-tags');
+        techContainer.innerHTML = '';
+        (project.tech || []).forEach(tech => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'tech-tag';
+          btn.textContent = tech;
+          btn.addEventListener('click', () => {
+            closeModal();
+            if (activeTag !== tech) setFilter(tech);
+            document.getElementById('projects').scrollIntoView();
+          });
+          techContainer.appendChild(btn);
+        });
+
+        document.getElementById('modal-code').textContent = project.codeSnippet || '// No code sample available';
+
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+
       function closeModal() {
         modal.classList.remove('active');
         document.body.style.overflow = '';
       }
-      
-      closeBtn.addEventListener('click', closeModal);
-      backdrop.addEventListener('click', closeModal);
-      
+
+      document.querySelector('.modal-close').addEventListener('click', closeModal);
+      document.querySelector('.modal-backdrop').addEventListener('click', closeModal);
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal.classList.contains('active')) {
-          closeModal();
-        }
+        if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
       });
     }
   </script>
 </BaseLayout>
 
 <style>
+  /* Page width: BaseLayout's `section` rule is scoped to BaseLayout, so it never
+     reaches these sections. Without this, every section runs edge to edge. */
+  section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
   /* Hero */
   #home {
     position: relative;
@@ -353,17 +416,65 @@ const recentPosts = allPosts.slice(0, 3);
 
   .projects-list {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 2rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+
+  .project[hidden] {
+    display: none;
+  }
+
+  /* Filter status bar */
+  .project-filter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1.5rem;
+    margin-bottom: 1.5rem;
+    padding: 0.75rem 1rem;
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 6px;
+    color: #bbb;
+  }
+
+  .project-filter[hidden] {
+    display: none;
+  }
+
+  .project-filter strong {
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .filter-clear {
+    background: none;
+    border: none;
+    border-bottom: 1px solid #555;
+    color: #fff;
+    font: inherit;
+    font-size: 0.95rem;
+    cursor: pointer;
+    padding: 0;
+    transition: border-color 0.2s;
+  }
+
+  .filter-clear:hover {
+    border-color: #fff;
   }
 
   .project {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
     background: #111;
     border: 1px solid #222;
     border-radius: 8px;
-    padding: 2rem;
+    padding: 1.5rem;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
   }
 
   .project:hover {
@@ -372,23 +483,30 @@ const recentPosts = allPosts.slice(0, 3);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
   }
 
-  .project:hover .project-media {
+  .project:hover .project-media img,
+  .project:hover .project-media .placeholder {
     border-color: #333;
   }
 
   .project-header {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
+    align-items: baseline;
+    gap: 0.25rem 1rem;
+    margin-bottom: 0.75rem;
   }
 
   .project h3 {
-    font-size: 1.75rem;
+    margin: 0;
+    font-size: 1.3rem;
+    line-height: 1.3;
     color: #fff;
+    overflow-wrap: anywhere;
   }
 
   .github-link {
+    flex-shrink: 0;
     color: #fff;
     text-decoration: none;
     font-size: 0.95rem;
@@ -400,32 +518,63 @@ const recentPosts = allPosts.slice(0, 3);
     border-color: #fff;
   }
 
-  .project-media {
+  /* The media box is an invisible 16:9 slot that keeps every card in a row aligned.
+     The visible frame (background, border, rounded corners) sits on the image itself,
+     so it shrinks with the image instead of staying 16:9. */
+  .project-media,
+  .modal-media {
+    box-sizing: border-box;
+    position: relative;
     width: 100%;
     aspect-ratio: 16/9;
+  }
+
+  .project-media {
+    margin-bottom: 1.25rem;
+  }
+
+  .placeholder,
+  .modal-media :global(.placeholder) {
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
     background: #1a1a1a;
     border: 1px solid #222;
     border-radius: 6px;
-    margin-bottom: 1.5rem;
-    overflow: hidden;
-  }
-
-  .placeholder {
-    height: 100%;
+    transition: border-color 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #555;
   }
 
-  .project-media img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  /* Absolutely positioned so the image can't stretch the 16:9 slot;
+     inset 0 + margin auto centers it, max-width/height shrink it to fit. */
+  .project-media img,
+  .modal-media :global(img) {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    box-sizing: border-box;
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    background: #1a1a1a;
+    border: 1px solid #222;
+    border-radius: 6px;
+    transition: border-color 0.3s ease;
+  }
+
+  .modal-media :global(img),
+  .modal-media :global(.placeholder) {
+    border-radius: 8px;
   }
 
   .project-description {
-    margin-bottom: 1.5rem;
+    flex-grow: 1;
+    margin: 0 0 1.25rem;
     line-height: 1.7;
     color: #bbb;
   }
@@ -433,17 +582,38 @@ const recentPosts = allPosts.slice(0, 3);
   .tech-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
+    gap: 0.5rem;
   }
 
-  .tech-tag {
+  .tech-list :global(.tech-tag) {
     background: #1a1a1a;
-    padding: 0.4rem 0.8rem;
+    padding: 0.35rem 0.7rem;
     border-radius: 4px;
-    font-size: 0.85rem;
+    font: inherit;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    text-align: left;
     color: #999;
     border: 1px solid #222;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+  }
+
+  .tech-list :global(.tech-tag:hover) {
+    color: #fff;
+    border-color: #555;
+  }
+
+  .tech-list :global(.tech-tag.active) {
+    background: #fff;
+    border-color: #fff;
+    color: #0a0a0a;
+  }
+
+  .tech-list :global(.tech-tag:focus-visible),
+  .filter-clear:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
   }
 
   /* Blog Cards on Homepage */
@@ -712,14 +882,12 @@ const recentPosts = allPosts.slice(0, 3);
     border-color: #fff;
   }
 
+  .modal-github-link[hidden] {
+    display: none;
+  }
+
   .modal-media {
-    width: 100%;
-    aspect-ratio: 16/9;
-    background: #1a1a1a;
-    border: 1px solid #222;
-    border-radius: 8px;
     margin-bottom: 2rem;
-    overflow: hidden;
   }
 
   .modal-section {
@@ -749,6 +917,12 @@ const recentPosts = allPosts.slice(0, 3);
   }
 
   /* Responsive */
+  @media (max-width: 1024px) {
+    .projects-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
   @media (max-width: 768px) {
     nav {
       padding: 1.5rem 2rem;
@@ -767,11 +941,11 @@ const recentPosts = allPosts.slice(0, 3);
     }
 
     .projects-list {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
 
     .project {
-      padding: 1.5rem;
+      padding: 1.25rem;
     }
 
     .skills-contact {

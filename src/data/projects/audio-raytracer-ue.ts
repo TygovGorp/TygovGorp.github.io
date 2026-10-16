@@ -1,37 +1,21 @@
 export default {
-  title: 'CPU Path Tracer',
-  image: '/projects/pathtracer-thumb.jpg',
-  description: 'A simple CPU-based path tracer implementing ray tracing algorithms.',
-  tech: ['Ray tracing', 'Monte Carlo integration', 'Material shading'],
-  github: 'https://github.com/yourusername/cpu-pathtracer',
+  order: 0, // lower = shown first
+  title: 'UE Audio Raytracer',
+  image: '/media/project/audio-tracer/audio-tracer-thumb.jpg',
+  description: 'A Unreal Engine project implementing a plugin for ray tracing algorithm for audio rendering',
+  tech: ['BUas', 'Unreal Engine', 'Audio', 'Ray tracing'],
+  github: 'https://github.com/TygovGorp/RTA',
   
   fullDescription: `
-    A simple CPU-based path tracer implementing ray tracing algorithms.
-    Supports various materials and lighting models for realistic rendering.
+    A school project where I implemented Occlusion, Reverb and and a simple Diffraction algorithm for audio rendering in Unreal Engine. 
+    The project is a plugin that can be used in any Unreal Engine 5.8 project to enhance the audio experience by simulating how sound interacts with the environment.
   `,
   features: [
-    'Screen-space raymarching for efficiency',
-    'Temporal filtering to reduce noise',
-    'Phase function for anisotropic scattering',
-    'Height-based fog density',
-    'Integration with existing shadow maps'
+    'Occlusion for realistic sound blocking',
+    'Reverb for spatial sound effects',
+    'Diffraction for sound bending around obstacles',
+    'Integration with Unreal Engine audio system',
+    'Multi-threaded processing for performance optimization'
   ],
-  codeSnippet: `// Volumetric fog raymarching
-vec4 raymarchFog(vec3 rayOrigin, vec3 rayDir, float depth) {
-    float stepSize = depth / float(STEPS);
-    vec3 accumFog = vec3(0.0);
-    float transmittance = 1.0;
-    
-    for (int i = 0; i < STEPS; i++) {
-        vec3 pos = rayOrigin + rayDir * (stepSize * float(i));
-        float density = sampleFogDensity(pos);
-        vec3 light = calculateScattering(pos, density);
-        
-        accumFog += light * density * transmittance * stepSize;
-        transmittance *= exp(-density * stepSize * EXTINCTION);
-    }
-    
-    return vec4(accumFog, 1.0 - transmittance);
-}`,
   videoUrl: null,
 };

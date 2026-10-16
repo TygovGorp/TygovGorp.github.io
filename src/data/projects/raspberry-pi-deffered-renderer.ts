@@ -1,44 +1,16 @@
 export default {
+  order: 90, // lower = shown first
   title: 'Raspberry Pi Deferred Renderer',
   image: '/media/project/pi-deferred-renderer/pi-deferred-renderer-thumb.png',
-  description: 'A deferred rendering engine optimized for Raspberry Pi hardware, supporting dynamic lighting and SSAO.',
-  tech: ['Cook-Torrance BRDF', 'IBL with split-sum approximation', 'Cascade shadow maps with PCF'],
+  description: 'TODO',
+  tech: ['BUas', 'Rasberry Pi', 'Cross-platform', 'OpenGL ES'],
   github: 'https://github.com/yourusername/pbr-renderer',
   
   // FULL DETAILS FOR MODAL
-  fullDescription: `
-    A complete physically-based rendering system built from scratch using OpenGL. 
-    Implements modern PBR workflows with support for metallic-roughness materials,
-    image-based lighting, and real-time shadows.
-    
-    Key features include dynamic environment mapping, multiple light sources,
-    and optimized for 60fps at 1080p on mid-range hardware.
-  `,
+  fullDescription: 'TODO',
   features: [
-    'Cook-Torrance BRDF with GGX distribution',
-    'Split-sum approximation for IBL',
-    'Cascade shadow mapping with PCF filtering',
-    'Real-time environment probes',
-    'Material editor with live preview'
+    'TODO'
   ],
-  codeSnippet: `// Fragment shader - PBR lighting calculation
-vec3 calculatePBR(vec3 N, vec3 V, vec3 L, vec3 albedo, 
-                  float metallic, float roughness) {
-    vec3 H = normalize(V + L);
-    float NdotL = max(dot(N, L), 0.0);
-    float NdotV = max(dot(N, V), 0.0);
-    float NdotH = max(dot(N, H), 0.0);
-    
-    // Cook-Torrance specular
-    float D = distributionGGX(NdotH, roughness);
-    float G = geometrySmith(NdotV, NdotL, roughness);
-    vec3 F = fresnelSchlick(max(dot(H, V), 0.0), 
-                           mix(vec3(0.04), albedo, metallic));
-    
-    vec3 specular = (D * G * F) / (4.0 * NdotV * NdotL + 0.001);
-    vec3 diffuse = albedo * (1.0 - metallic) / PI;
-    
-    return (diffuse + specular) * NdotL;
-}`,
+  codeSnippet: 'TODO',
   videoUrl: null, // Optional: Add YouTube embed or video file
 };
